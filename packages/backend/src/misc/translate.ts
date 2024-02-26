@@ -25,10 +25,6 @@ export async function translate(
 ) {
 	const instance = await fetchMeta();
 
-	if (instance.deeplAuthKey == null && instance.libreTranslateApiUrl == null) {
-		throw Error("No translator is set up on this server.");
-	}
-
 	const source = from == null ? null : stem(from);
 	const target = stem(to);
 
@@ -72,6 +68,76 @@ export async function translate(
 				json.translatedText,
 			),
 		};
+	}
+
+	if (instance.deeplAuthKey == null && instance.libreTranslateApiUrl == null) {
+		if (!instance.deeplAuthKey && !instance.libreTranslateApiUrl) {
+			const MAX_TRANSLATE = 15000;
+			const MAX_TRANSLATE_PER_REQ = 1500;
+	
+			const toTranslate: string[] = [];
+	
+			for (
+				let i = 0;
+				i < text.length && i < MAX_TRANSLATE;
+				i += MAX_TRANSLATE_PER_REQ
+			) {
+				toTranslate.push(text.slice(i, i + MAX_TRANSLATE_PER_REQ));
+			}
+	
+			const googleTranslate = async (toTranslate: string) => {
+				const googleUrl = new URL(
+					"https://translate.google.com/translate_a/single?client=gtx&dt=t&dj=1&ie=UTF-8&sl=auto",
+				);
+				googleUrl.searchParams.append("tl", to.replaceAll("-", "_"));
+				googleUrl.searchParams.append("q", toTranslate);
+	
+				const res = await fetch(googleUrl.toString());
+				const json = (await res.json()) as {
+					sentences: {
+						/** translated text */
+						trans: string;
+						/** original text */
+						orig: string;
+					}[];
+					src: string;
+				};
+	
+				return {
+					sourceLang: json.src,
+					text: json.sentences.map((s) => s.trans).join(" "),
+				};
+			};
+	
+			const result: {
+				sourceLang: string;
+				text: string;
+			} = {
+				sourceLang: source ?? "",
+				text: "",
+			};
+	
+			for (const text of toTranslate) {
+				// If it is not the first request, sleep 500 milliseconds to prevent 429 too many requests.
+				if (!result.text) {
+					await new Promise((r) => setTimeout(r, 500));
+				}
+				try {
+					const res = await googleTranslate(text);
+					result.sourceLang ||= res.sourceLang;
+					result.text += res.text;
+				} catch (err) {
+					result.text += "... (an error occurred during translate)";
+					return result;
+				}
+			}
+	
+			if (text.length > MAX_TRANSLATE + MAX_TRANSLATE_PER_REQ) {
+				result.text += "... (text is too long to translate)";
+			}
+	
+			return result;
+		}
 	}
 
 	const deeplTranslator = new deepl.Translator(instance.deeplAuthKey ?? "");
