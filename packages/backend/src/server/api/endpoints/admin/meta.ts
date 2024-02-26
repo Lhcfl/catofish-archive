@@ -500,8 +500,8 @@ export default define(meta, paramDef, async () => {
 		defaultDarkTheme: instance.defaultDarkTheme,
 		enableEmail: instance.enableEmail,
 		enableServiceWorker: instance.enableServiceWorker,
-		translatorAvailable:
-			instance.deeplAuthKey != null || instance.libreTranslateApiUrl != null,
+		translatorAvailable: true,
+		// instance.deeplAuthKey != null || instance.libreTranslateApiUrl != null,
 		pinnedPages: instance.pinnedPages,
 		pinnedClipId: instance.pinnedClipId,
 		cacheRemoteFiles: instance.cacheRemoteFiles,
