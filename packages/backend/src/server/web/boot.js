@@ -110,9 +110,9 @@
 		document.documentElement.style.fontSize = `${fontSize}px`;
 	}
 
-	if (["ja-JP", "ja-KS", "ko-KR", "zh-CN", "zh-TW"].includes(lang)) {
-		document.documentElement.classList.add("useCJKFont");
-	}
+	// if (["ja-JP", "ja-KS", "ko-KR", "zh-CN", "zh-TW"].includes(lang)) {
+	// 	document.documentElement.classList.add("useCJKFont");
+	// }
 
 	const useSystemFont = localStorage.getItem("useSystemFont") !== "f";
 	if (useSystemFont) {
@@ -186,7 +186,7 @@
 		errorsElement.appendChild(detailsElement);
 		addStyle(`
 		* {
-			font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
+			font-family: Roboto, HelveticaNeue, Arial, sans-serif;
 		}
 
 		#firefish_app,
