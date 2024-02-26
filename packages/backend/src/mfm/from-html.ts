@@ -19,11 +19,14 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 		return appendChildren(childNodes, background).join("").trim();
 	}
 
+<<<<<<< HEAD
 	/**
 	 * Get only the text, ignoring all formatting inside
 	 * @param node
 	 * @returns
 	 */
+=======
+>>>>>>> 344daffc67 (feat: support html ruby)
 	function getText(node: TreeAdapter.Node): string {
 		if (treeAdapter.isTextNode(node)) return node.value;
 		if (!treeAdapter.isElementNode(node)) return "";
@@ -49,6 +52,7 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 		}
 	}
 
+<<<<<<< HEAD
 	/**
 	 *
 	 * @param node
@@ -56,6 +60,8 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 	 * @param background Determine whether the context is `<ul>` or `<ol>`
 	 * @returns
 	 */
+=======
+>>>>>>> 344daffc67 (feat: support html ruby)
 	function analyze(
 		node: TreeAdapter.Node,
 		index = 1,
@@ -181,8 +187,11 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 				return ["\n\n", appendChildren(node.childNodes)];
 			}
 
+<<<<<<< HEAD
 			// MFM does not currently support lists,
 			// but this parser will parse html into a markdown style list with correct indentation.
+=======
+>>>>>>> 344daffc67 (feat: support html ruby)
 			case "ul": {
 				return [
 					"\n  ",
@@ -222,7 +231,6 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 				return ["\n", appendChildren(node.childNodes)];
 			}
 
-			// temporary solution
 			case "ruby": {
 				const rtText = node.childNodes
 					.filter((n) => n.nodeName === "rt")
@@ -231,7 +239,7 @@ export function fromHtml(html: string, hashtagNames?: string[]): string {
 					.filter((n) => treeAdapter.isTextNode(n))
 					.map((n) => getText(n));
 				if (rubyText && rtText) {
-					return [rubyText, "(", rtText, ")"];
+					return ["$[ruby ", rubyText, "|", rtText, " ]"];
 				} else {
 					return appendChildren(node.childNodes);
 				}
