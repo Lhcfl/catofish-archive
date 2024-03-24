@@ -309,6 +309,8 @@ import XNoteSimple from "@/components/MkNoteSimple.vue";
 import XNotePreview from "@/components/MkNotePreview.vue";
 import XPostFormAttaches from "@/components/MkPostFormAttaches.vue";
 import XPollEditor from "@/components/MkPollEditor.vue";
+import XCheatSheet from "@/components/MkCheatSheetDialog.vue";
+import XMediaCaption from "@/components/MkMediaCaption.vue";
 import { host, url } from "@/config";
 import { erase, unique } from "@/scripts/array";
 import { extractMentions } from "@/scripts/extract-mentions";
@@ -325,7 +327,6 @@ import { getAccounts, openAccountMenu as openAccountMenu_ } from "@/account";
 import { me } from "@/me";
 import { uploadFile } from "@/scripts/upload";
 import { deepClone } from "@/scripts/clone";
-import XCheatSheet from "@/components/MkCheatSheetDialog.vue";
 import preprocess from "@/scripts/preprocess";
 import { vibrate } from "@/scripts/vibrate";
 import { langmap } from "@/scripts/langmap";
@@ -494,7 +495,7 @@ const withHashtags = computed(
 );
 const hashtags = computed(defaultStore.makeGetterSetter("postFormHashtags"));
 
-let firstTryPost = true;
+let isFirstPostAttempt = true;
 
 watch(text, () => {
 	checkMissingMention();
@@ -1021,47 +1022,46 @@ function deleteDraft() {
 	localStorage.setItem("drafts", JSON.stringify(draftData));
 }
 
+async function openFileDescriptionWindow(file: DriveFile) {
+	await os.popup(
+		XMediaCaption,
+		{
+			title: i18n.ts.describeFile,
+			input: {
+				placeholder: i18n.ts.inputNewDescription,
+				default: file.comment !== null ? file.comment : "",
+			},
+			image: file,
+		},
+		{
+			done: (result) => {
+				if (!result || result.canceled) return;
+				const comment =
+					result.result.length === 0 ? null : result.result;
+				os.api("drive/files/update", {
+					fileId: file.id,
+					comment,
+				}).then(() => {
+					file.comment = comment;
+				});
+			},
+		},
+		"closed",
+	);
+}
+
 async function post() {
 	if (
 		defaultStore.state.showNoAltTextWarning &&
 		files.value.some((f) => f.comment == null || f.comment.length === 0)
 	) {
-		if (firstTryPost) {
+		if (isFirstPostAttempt) {
 			for (const file of files.value) {
 				if (file.comment == null || file.comment.length === 0) {
-					os.popup(
-						defineAsyncComponent(
-							() => import("@/components/MkMediaCaption.vue"),
-						),
-						{
-							title: i18n.ts.describeFile,
-							input: {
-								placeholder: i18n.ts.inputNewDescription,
-								default:
-									file.comment !== null ? file.comment : "",
-							},
-							image: file,
-						},
-						{
-							done: (result) => {
-								if (!result || result.canceled) return;
-								const comment =
-									result.result.length === 0
-										? null
-										: result.result;
-								os.api("drive/files/update", {
-									fileId: file.id,
-									comment,
-								}).then(() => {
-									file.comment = comment;
-								});
-							},
-						},
-						"closed",
-					);
+					await openFileDescriptionWindow(file);
 				}
 			}
-			firstTryPost = false;
+			isFirstPostAttempt = false;
 			return;
 		}
 
@@ -1077,36 +1077,7 @@ async function post() {
 		if (!canceled) {
 			for (const file of files.value) {
 				if (file.comment == null || file.comment.length === 0) {
-					os.popup(
-						defineAsyncComponent(
-							() => import("@/components/MkMediaCaption.vue"),
-						),
-						{
-							title: i18n.ts.describeFile,
-							input: {
-								placeholder: i18n.ts.inputNewDescription,
-								default:
-									file.comment !== null ? file.comment : "",
-							},
-							image: file,
-						},
-						{
-							done: (result) => {
-								if (!result || result.canceled) return;
-								const comment =
-									result.result.length === 0
-										? null
-										: result.result;
-								os.api("drive/files/update", {
-									fileId: file.id,
-									comment,
-								}).then(() => {
-									file.comment = comment;
-								});
-							},
-						},
-						"closed",
-					);
+					await openFileDescriptionWindow(file);
 				}
 			}
 			return;
