@@ -496,8 +496,6 @@ const withHashtags = computed(
 );
 const hashtags = computed(defaultStore.makeGetterSetter("postFormHashtags"));
 
-let isFirstPostAttempt = true;
-
 watch(text, () => {
 	checkMissingMention();
 });
@@ -1015,32 +1013,43 @@ function deleteDraft() {
 	localStorage.setItem("drafts", JSON.stringify(draftData));
 }
 
-async function openFileDescriptionWindow(file: DriveFile) {
-	await os.popup(
-		XMediaCaption,
-		{
-			title: i18n.ts.describeFile,
-			input: {
-				placeholder: i18n.ts.inputNewDescription,
-				default: file.comment !== null ? file.comment : "",
+/**
+ * @returns whether the file is described
+ */
+function openFileDescriptionWindow(file: entities.DriveFile) {
+	return new Promise<boolean>((resolve, reject) => {
+		os.popup(
+			XMediaCaption,
+			{
+				title: i18n.ts.describeFile,
+				input: {
+					placeholder: i18n.ts.inputNewDescription,
+					default: file.comment !== null ? file.comment : "",
+				},
+				image: file,
 			},
-			image: file,
-		},
-		{
-			done: (result) => {
-				if (!result || result.canceled) return;
-				const comment =
-					result.result.length === 0 ? null : result.result;
-				os.api("drive/files/update", {
-					fileId: file.id,
-					comment,
-				}).then(() => {
-					file.comment = comment;
-				});
+			{
+				done: (result) => {
+					if (!result || result.canceled) {
+						resolve(false);
+						return;
+					}
+					const comment =
+						result.result.length === 0 ? null : result.result;
+ 					os.api("drive/files/update", {
+						fileId: file.id,
+						comment,
+					}).then(() => {
+						resolve(true);
+						file.comment = comment;
+					}).catch((err: unknown) => {
+						reject(err);
+					});
+				},
 			},
-		},
-		"closed",
-	);
+			"closed",
+		);
+	})
 }
 
 async function post() {
@@ -1081,16 +1090,6 @@ async function post() {
 		defaultStore.state.showNoAltTextWarning &&
 		files.value.some((f) => f.comment == null || f.comment.length === 0)
 	) {
-		if (isFirstPostAttempt) {
-			for (const file of files.value) {
-				if (file.comment == null || file.comment.length === 0) {
-					await openFileDescriptionWindow(file);
-				}
-			}
-			isFirstPostAttempt = false;
-			return;
-		}
-
 		// "canceled" means "post anyway"
 		const { canceled } = await os.confirm({
 			type: "warning",
@@ -1103,10 +1102,16 @@ async function post() {
 		if (!canceled) {
 			for (const file of files.value) {
 				if (file.comment == null || file.comment.length === 0) {
-					await openFileDescriptionWindow(file);
+					const described = await openFileDescriptionWindow(file);
+					if (!described) {
+						return;
+					}
 				}
 			}
-			return;
+			// Continue if all files have alt-text added.
+			if (files.value.some((f) => f.comment == null || f.comment.length === 0)) {
+				return;
+			}
 		}
 	}
 
