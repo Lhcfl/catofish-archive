@@ -1,6 +1,7 @@
 import { defineComponent, h } from "vue";
 import * as mfm from "mfm-js";
-import type { VNode } from "vue";
+import type { PropType, VNode } from "vue";
+import type { entities } from "firefish-js";
 import MkUrl from "@/components/global/MkUrl.vue";
 import MkLink from "@/components/MkLink.vue";
 import MkMention from "@/components/MkMention.vue";
@@ -8,12 +9,11 @@ import MkEmoji from "@/components/global/MkEmoji.vue";
 import { concat } from "@/scripts/array";
 import MkFormula from "@/components/MkFormula.vue";
 import MkCode from "@/components/MkCode.vue";
-import MkGoogle from "@/components/MkGoogle.vue";
+import MkSearchBar from "@/components/MkSearchBar.vue";
 import MkSparkle from "@/components/MkSparkle.vue";
 import MkA from "@/components/global/MkA.vue";
 import { host } from "@/config";
 import { reducedMotion } from "@/scripts/reduced-motion";
-import { defaultStore } from "@/store";
 import MkTime from "@/components/global/MkTime.vue";
 
 export default defineComponent({
@@ -39,6 +39,7 @@ export default defineComponent({
 			default: null,
 		},
 		customEmojis: {
+			type: Array as PropType<entities.EmojiLite[]>,
 			required: false,
 		},
 		isNote: {
@@ -595,7 +596,7 @@ export default defineComponent({
 							}
 
 							return [
-								h(MkGoogle, {
+								h(MkSearchBar, {
 									key: Math.random(),
 									q: token.props.query,
 								}),

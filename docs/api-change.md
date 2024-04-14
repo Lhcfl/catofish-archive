@@ -2,7 +2,11 @@
 
 Breaking changes are indicated by the :warning: icon.
 
-## Unreleased
+## v20240413
+
+- :warning: Removed `patrons` endpoint.
+
+## v20240405
 
 - Added `notes/history` endpoint.
 
