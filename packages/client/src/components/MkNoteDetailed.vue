@@ -278,7 +278,6 @@ useNoteCapture({
 	note,
 	isDeletedRef: isDeleted,
 	onReplied: (replyNote) => {
-		note.value.repliesCount += 1;
 		repliesPagingComponent.value?.append(replyNote);
 	},
 });
@@ -401,7 +400,7 @@ const renotePagination = {
 	limit: 30,
 	params: {
 		noteId: note.value.id,
-		filter: "boost" as const,
+		filter: "renote" as const,
 	},
 };
 const quotePagination = {

@@ -174,7 +174,7 @@ export type Note = {
 	channelId?: Channel["id"];
 	channel?: Channel;
 	myReaction?: string;
-	meRenoteCount?: number;
+	myRenoteCount?: number;
 	reactions: Record<string, number>;
 	renoteCount: number;
 	repliesCount: number;
@@ -358,6 +358,7 @@ export type LiteInstanceMetadata = {
 	disableGlobalTimeline: boolean;
 	driveCapacityPerLocalUserMb: number;
 	driveCapacityPerRemoteUserMb: number;
+	antennaLimit: number;
 	enableHcaptcha: boolean;
 	hcaptchaSiteKey: string | null;
 	enableRecaptcha: boolean;

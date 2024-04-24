@@ -12,7 +12,7 @@ export function useNoteCapture(props: {
 	onReplied?: (note: entities.Note) => void;
 }) {
 	const note = props.note;
-	const connection = isSignedIn ? useStream() : null;
+	const connection = isSignedIn(me) ? useStream() : null;
 
 	async function onStreamNoteUpdated(noteData): Promise<void> {
 		const { type, id, body } = noteData;
@@ -21,6 +21,7 @@ export function useNoteCapture(props: {
 
 		switch (type) {
 			case "replied": {
+				note.value.repliesCount += 1;
 				if (props.onReplied) {
 					const { id: createdId } = body;
 					const replyNote = await os.api("notes/show", {
@@ -45,7 +46,7 @@ export function useNoteCapture(props: {
 
 				note.value.reactions[reaction] = currentCount + 1;
 
-				if (isSignedIn && body.userId === me!.id) {
+				if (isSignedIn(me) && body.userId === me.id) {
 					note.value.myReaction = reaction;
 				}
 				break;
@@ -59,7 +60,7 @@ export function useNoteCapture(props: {
 
 				note.value.reactions[reaction] = Math.max(0, currentCount - 1);
 
-				if (isSignedIn && body.userId === me!.id) {
+				if (isSignedIn(me) && body.userId === me.id) {
 					note.value.myReaction = undefined;
 				}
 				break;
@@ -73,7 +74,7 @@ export function useNoteCapture(props: {
 					choices[choice] = {
 						...choices[choice],
 						votes: choices[choice].votes + 1,
-						...(isSignedIn && body.userId === me!.id
+						...(isSignedIn(me) && body.userId === me.id
 							? {
 									isVoted: true,
 								}

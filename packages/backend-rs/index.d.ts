@@ -12,7 +12,7 @@ export interface EnvConfig {
   withLogTime: boolean
   slow: boolean
 }
-export function readEnvironmentConfig(): EnvConfig
+export function loadEnv(): EnvConfig
 export interface ServerConfig {
   url: string
   port: number
@@ -29,7 +29,7 @@ export interface ServerConfig {
   /** `NapiValue` is not implemented for `u64` */
   maxFileSize?: number
   accessLog?: string
-  clusterLimits?: WorkerConfig
+  clusterLimits?: WorkerConfigInternal
   cuid?: IdConfig
   outgoingAddress?: string
   deliverJobConcurrency?: number
@@ -70,13 +70,17 @@ export interface RedisConfig {
   pass?: string
   tls?: TlsConfig
   db: number
-  prefix: string
+  prefix?: string
 }
 export interface TlsConfig {
   host: string
   rejectUnauthorized: boolean
 }
 export interface WorkerConfig {
+  web: number
+  queue: number
+}
+export interface WorkerConfigInternal {
   web?: number
   queue?: number
 }
@@ -121,13 +125,90 @@ export interface ObjectStorageConfig {
   setPublicReadOnUpload?: boolean
   s3ForcePathStyle?: boolean
 }
-export function readServerConfig(): ServerConfig
+export interface Config {
+  url: string
+  port: number
+  bind?: string
+  disableHsts?: boolean
+  db: DbConfig
+  redis: RedisConfig
+  cacheServer?: RedisConfig
+  proxy?: string
+  proxySmtp?: string
+  proxyBypassHosts?: Array<string>
+  allowedPrivateNetworks?: Array<string>
+  maxFileSize?: number
+  accessLog?: string
+  clusterLimits: WorkerConfig
+  cuid?: IdConfig
+  outgoingAddress?: string
+  deliverJobConcurrency?: number
+  inboxJobConcurrency?: number
+  deliverJobPerSec?: number
+  inboxJobPerSec?: number
+  deliverJobMaxAttempts?: number
+  inboxJobMaxAttempts?: number
+  logLevel?: Array<string>
+  syslog?: SysLogConfig
+  proxyRemoteFiles?: boolean
+  mediaProxy?: string
+  summalyProxyUrl?: string
+  reservedUsernames?: Array<string>
+  maxUserSignups?: number
+  isManagedHosting?: boolean
+  maxNoteLength?: number
+  maxCaptionLength?: number
+  deepl?: DeepLConfig
+  libreTranslate?: LibreTranslateConfig
+  email?: EmailConfig
+  objectStorage?: ObjectStorageConfig
+  version: string
+  host: string
+  hostname: string
+  redisKeyPrefix: string
+  scheme: string
+  wsScheme: string
+  apiUrl: string
+  wsUrl: string
+  authUrl: string
+  driveUrl: string
+  userAgent: string
+  clientEntry: Manifest
+}
+export interface Manifest {
+  file: string
+  name: string
+  src: string
+  isEntry: boolean
+  isDynamicEntry: boolean
+  imports: Array<string>
+  dynamicImports: Array<string>
+  css: Array<string>
+  assets: Array<string>
+}
+export function loadConfig(): Config
 export interface Acct {
   username: string
   host: string | null
 }
 export function stringToAcct(acct: string): Acct
 export function acctToString(acct: Acct): string
+export function addNoteToAntenna(antennaId: string, note: Note): void
+/**
+ * @param host punycoded instance host
+ * @returns whether the given host should be blocked
+*/
+export function isBlockedServer(host: string): Promise<boolean>
+/**
+ * @param host punycoded instance host
+ * @returns whether the given host should be limited
+*/
+export function isSilencedServer(host: string): Promise<boolean>
+/**
+ * @param host punycoded instance host
+ * @returns whether the given host is allowlisted (this is always true if private mode is disabled)
+*/
+export function isAllowedServer(host: string): Promise<boolean>
 /** TODO: handle name collisions better */
 export interface NoteLikeForCheckWordMute {
   fileIds: Array<string>
@@ -183,6 +264,8 @@ export interface DecodedReaction {
 export function decodeReaction(reaction: string): DecodedReaction
 export function countReactions(reactions: Record<string, number>): Record<string, number>
 export function toDbReaction(reaction?: string | undefined | null, host?: string | undefined | null): Promise<string>
+/** Delete all entries in the "attestation_challenge" table created at more than 5 minutes ago */
+export function removeOldAttestationChallenges(): Promise<void>
 export interface AbuseUserReport {
   id: string
   createdAt: Date
@@ -348,6 +431,7 @@ export interface DriveFile {
   webpublicType: string | null
   requestHeaders: Json | null
   requestIp: string | null
+  usageHint: DriveFileUsageHintEnum | null
 }
 export interface DriveFolder {
   id: string
@@ -553,6 +637,7 @@ export interface Meta {
   donationLink: string | null
   moreUrls: Json
   markLocalFilesNsfwByDefault: boolean
+  antennaLimit: number
 }
 export interface Migrations {
   id: number
@@ -779,6 +864,10 @@ export enum AntennaSrcEnum {
   Instances = 'instances',
   List = 'list',
   Users = 'users'
+}
+export enum DriveFileUsageHintEnum {
+  UserAvatar = 'userAvatar',
+  UserBanner = 'userBanner'
 }
 export enum MutedNoteReasonEnum {
   Manual = 'manual',
@@ -1033,8 +1122,15 @@ export interface Webhook {
   latestSentAt: Date | null
   latestStatus: number | null
 }
-/** Initializes Cuid2 generator. Must be called before any [create_id]. */
-export function initIdGenerator(length: number, fingerprint: string): void
+export function watchNote(watcherId: string, noteAuthorId: string, noteId: string): Promise<void>
+export function unwatchNote(watcherId: string, noteId: string): Promise<void>
+export enum ChatEvent {
+  Message = 'message',
+  Read = 'read',
+  Deleted = 'deleted',
+  Typing = 'typing'
+}
+export function publishToChatStream(senderUserId: string, receiverUserId: string, kind: ChatEvent, object: any): void
 export function getTimestamp(id: string): number
 /**
  * The generated ID results in the form of `[8 chars timestamp] + [cuid2]`.
@@ -1044,5 +1140,7 @@ export function getTimestamp(id: string): number
  *
  * Ref: https://github.com/paralleldrive/cuid2#parameterized-length
  */
-export function genId(date?: Date | undefined | null): string
+export function genId(): string
+/** Generate an ID using a specific datetime */
+export function genIdAt(date: Date): string
 export function secureRndstr(length?: number | undefined | null): string
