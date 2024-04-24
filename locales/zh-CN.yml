@@ -1788,6 +1788,7 @@ _notification:
   reacted: 回应了您的帖子
   voted: 在您的问卷调查中投了票
   renoted: 转发了您的帖子
+  andCountUsers: "等 {count} 名用户{acted}"
 _deck:
   alwaysShowMainColumn: "总是显示主列"
   columnAlign: "列对齐"
@@ -2061,3 +2062,5 @@ incorrectLanguageWarning: "看上去您帖子使用的语言是{detected}，但�
 noteEditHistory: "帖子编辑历史"
 media: 媒体
 slashQuote: "斜杠引用"
+experimental: "实验性"
+foldNotification: "折叠同类型通知"
