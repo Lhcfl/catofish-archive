@@ -2235,4 +2235,4 @@ incorrectLanguageWarning: "It looks like your post is in {detected}, but you sel
   {current}.\nWould you like to set the language to {detected} instead?"
 noteEditHistory: "Post edit history"
 slashQuote: "Slash quote"
-foldNotification: "Collapse notifications of the same type"
+foldNotification: "Group similar notifications"
