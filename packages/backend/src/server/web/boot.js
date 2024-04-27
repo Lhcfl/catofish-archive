@@ -27,7 +27,21 @@
 	const v = localStorage.getItem("v") || VERSION;
 	const build_v = localStorage.getItem("build_version");
 
-	if (build_v !== BUILD_VERSION) {
+	function hasErrParsing(x) {
+		try {
+			JSON.parse(x);
+		} catch (err) {
+			return true;
+		}
+		return false;
+	}
+
+	if (
+		build_v !== BUILD_VERSION ||
+		lang == null ||
+		localStorage.getItem("locale") == null ||
+		hasErrParsing(localStorage.getItem("locale"))
+	) {
 		// Firefish updated, update locales
 		localStorage.setItem("build_version", BUILD_VERSION);
 
