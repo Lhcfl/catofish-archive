@@ -23,35 +23,44 @@
 	};
 
 	//#region Detect language & fetch translations
-	const v = localStorage.getItem("v") || VERSION;
-
-	let supportedLangs = [];
-	try {
-		supportedLangs = SUPPORTED_LANGS;
-	} catch {
-		console.warn("LANGS not found");
-	}
 	let lang = localStorage.getItem("lang");
-	if (lang == null || !supportedLangs.includes(lang)) {
-		if (supportedLangs.includes(navigator.language)) {
-			lang = navigator.language;
-		} else {
-			lang = supportedLangs.find((x) => x.split("-")[0] === navigator.language);
+	const v = localStorage.getItem("v") || VERSION;
+	const build_v = localStorage.getItem("build_version");
 
-			// Fallback
-			if (lang == null) lang = "en-US";
+	if (build_v !== BUILD_VERSION) {
+		// Firefish updated, update locales
+		localStorage.setItem("build_version", BUILD_VERSION);
+
+		let supportedLangs = [];
+		try {
+			supportedLangs = SUPPORTED_LANGS;
+		} catch {
+			console.warn("LANGS not found");
 		}
-	}
 
-	const res = await fetch(`/assets/locales/${lang}.${v}.json`);
-	if (res.status === 200) {
-		localStorage.setItem("lang", lang);
-		localStorage.setItem("locale", await res.text());
-		localStorage.setItem("localeVersion", v);
-	} else {
-		await checkUpdate();
-		renderError("LOCALE_FETCH");
-		return;
+		if (lang == null || !supportedLangs.includes(lang)) {
+			if (supportedLangs.includes(navigator.language)) {
+				lang = navigator.language;
+			} else {
+				lang = supportedLangs.find(
+					(x) => x.split("-")[0] === navigator.language,
+				);
+
+				// Fallback
+				if (lang == null) lang = "en-US";
+			}
+		}
+
+		const res = await fetch(`/assets/locales/${lang}.${BUILD_VERSION}.json`);
+		if (res.status === 200) {
+			localStorage.setItem("lang", lang);
+			localStorage.setItem("locale", await res.text());
+			localStorage.setItem("localeVersion", v);
+		} else {
+			await checkUpdate();
+			renderError("LOCALE_FETCH");
+			return;
+		}
 	}
 	//#endregion
 
@@ -306,7 +315,7 @@
 
 			const meta = await res.json();
 
-			if (meta.version != v) {
+			if (meta.version !== v) {
 				localStorage.setItem("v", meta.version);
 				refresh();
 			}

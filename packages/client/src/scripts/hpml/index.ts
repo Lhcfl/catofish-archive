@@ -80,6 +80,7 @@ export const envVarsDef: Record<string, Type> = {
 	AI: "string",
 	URL: "string",
 	VERSION: "string",
+	BUILD_VERSION: "string",
 	LOGIN: "boolean",
 	NAME: "string",
 	USERNAME: "string",

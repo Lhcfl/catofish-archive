@@ -94,6 +94,9 @@ app.use(
 		extension: "pug",
 		options: {
 			version: config.version,
+			build_version: readFileSync(
+				`${_dirname}/../../../../../build_version.txt`,
+			).toString(),
 			getClientEntry: () =>
 				process.env.NODE_ENV === "production"
 					? config.clientEntry

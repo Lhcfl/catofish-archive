@@ -2,9 +2,14 @@ import fs from "node:fs";
 import path, { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execa } from "execa";
+import meta from "../package.json" assert { type: "json" };
 
 (async () => {
 	const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+	const buildVersion = `${meta.version}.build-${Number(new Date)}`;
+
+	fs.writeFileSync("./build_version.txt", buildVersion);
 
 	await execa(
 		"pnpm", [

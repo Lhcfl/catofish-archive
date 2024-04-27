@@ -22,11 +22,16 @@ const extensions = [
 	".vue",
 ];
 
+const buildVersion = fs.readFileSync("../../build_version.txt").toString();
+
 export default defineConfig(({ command, mode }) => {
 	fs.mkdirSync(`${__dirname}/../../built`, { recursive: true });
 	fs.writeFileSync(
 		`${__dirname}/../../built/meta.json`,
-		JSON.stringify({ version: meta.version }),
+		JSON.stringify({
+			version: meta.version,
+			build_version: buildVersion,
+		}),
 		"utf-8",
 	);
 
@@ -55,6 +60,7 @@ export default defineConfig(({ command, mode }) => {
 
 		define: {
 			_VERSION_: JSON.stringify(meta.version),
+			_BUILD_VERSION_: JSON.stringify(buildVersion),
 			_LANGS_: JSON.stringify(
 				Object.entries(locales).map(([k, v]) => [k, v._lang_]),
 			),

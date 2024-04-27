@@ -10,7 +10,7 @@ import { isLiteralValue } from "./expr";
 import { HpmlError, HpmlScope } from ".";
 import type { Fn, PageVar, envVarsDef } from ".";
 import * as os from "@/os";
-import { version } from "@/config";
+import { build_version, version } from "@/config";
 
 /**
  * Hpml evaluator
@@ -75,6 +75,7 @@ export class Hpml {
 		this.envVars = {
 			AI: "kawaii",
 			VERSION: version,
+			BUILD_VERSION: build_version,
 			URL: this.page
 				? `${opts.url}/@${this.page.user.username}/pages/${this.page.name}`
 				: "",

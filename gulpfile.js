@@ -29,14 +29,20 @@ gulp.task("copy:client:fonts", () =>
 );
 
 gulp.task("copy:client:locales", async (cb) => {
+	try {
+		fs.rmSync("./built/_client_dist_/locales/", { recursive: true });
+	} catch (_e) {};
 	fs.mkdirSync("./built/_client_dist_/locales", { recursive: true });
+
+	const buildVersion = fs.readFileSync("./build_version.txt").toString();
+	
 	const { default: locales } = await import("./locales/index.mjs");
 
-	const v = { _version_: meta.version };
+	const v = { _version_: buildVersion };
 
 	for (const [lang, locale] of Object.entries(locales)) {
 		fs.writeFileSync(
-			`./built/_client_dist_/locales/${lang}.${meta.version}.json`,
+			`./built/_client_dist_/locales/${lang}.${buildVersion}.json`,
 			JSON.stringify({ ...locale, ...v }),
 			"utf-8",
 		);

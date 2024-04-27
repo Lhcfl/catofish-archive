@@ -14,6 +14,7 @@ export const lang = localStorage.getItem("lang");
 export const langs = _LANGS_;
 export const locale = JSON.parse(localStorage.getItem("locale") || "en-US");
 export const version: string = _VERSION_;
+export const build_version: string = _BUILD_VERSION_;
 export const instanceName = siteName === "Firefish" ? host : siteName;
 export const ui = localStorage.getItem("ui");
 export const debug = localStorage.getItem("debug") === "true";
