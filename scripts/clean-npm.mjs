@@ -26,6 +26,14 @@ import { execa } from "execa";
 		recursive: true,
 		force: true,
 	});
+	fs.rmSync(join(__dirname, "/../packages/i18n/node_modules"), {
+		recursive: true,
+		force: true,
+	});
+	fs.rmSync(join(__dirname, "/../packages/firefish-js/node_modules"), {
+		recursive: true,
+		force: true,
+	});
 	fs.rmSync(join(__dirname, "/../packages/megalodon/node_modules"), {
 		recursive: true,
 		force: true,

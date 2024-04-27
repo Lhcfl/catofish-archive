@@ -1,0 +1,41 @@
+{
+	"name": "i18n",
+	"version": "0.0.1",
+	"description": "Firefish i18n for TypeScript",
+	"homepage": "https://firefish.dev/firefish/firefish/-/tree/develop/packages/i18n",
+	"main": "./built/index.js",
+	"types": "./src/index.ts",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"build:types": "node scripts/build.js",
+		"build": "pnpm run build:types && pnpm swc src --out-dir built --source-maps false --copy-files --strip-leading-paths",
+		"build:debug": "pnpm run build:types && pnpm swc src --out-dir built --source-maps true --copy-files --strip-leading-paths",
+		"watch": "pnpm swc src --out-dir built --source-maps true --copy-files --strip-leading-paths --watch",
+		"lint": "pnpm biome check --apply src",
+		"format": "pnpm biome format --write src",
+		"jest": "echo NOT_IMPLEMENTED",
+		"test": "pnpm jest && pnpm tsd"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://firefish.dev/firefish/firefish.git"
+	},
+	"devDependencies": {
+		"@swc/cli": "0.3.12",
+		"@swc/core": "1.5.0",
+		"@swc/types": "^0.1.6",
+		"@types/js-yaml": "^4.0.9",
+		"@types/node": "20.12.7",
+		"typescript": "5.4.5"
+	},
+	"files": [
+		"built", "src"
+	],
+	"dependencies": {
+		"js-yaml": "4.1.0"
+	},
+	"optionalDependencies": {
+		"@swc/core-android-arm64": "1.3.11"
+	}
+}

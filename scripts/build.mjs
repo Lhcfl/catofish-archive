@@ -12,6 +12,7 @@ import { execa } from "execa";
 			"--parallel",
 			"--filter=backend-rs",
 			"--filter=firefish-js",
+			"--filter=i18n",
 			"run",
 			"build",
 		], {
@@ -26,6 +27,7 @@ import { execa } from "execa";
 			"--parallel",
 			"--filter=!backend-rs",
 			"--filter=!firefish-js",
+			"--filter=!i18n",
 			"run",
 			"build",
 		], {

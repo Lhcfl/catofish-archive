@@ -25,6 +25,10 @@ import { fileURLToPath } from "node:url";
 		recursive: true,
 		force: true,
 	});
+	fs.rmSync(join(__dirname, "/../packages/i18n/built"), {
+		recursive: true,
+		force: true,
+	});
 	fs.rmSync(join(__dirname, "/../packages/megalodon/lib"), {
 		recursive: true,
 		force: true,
