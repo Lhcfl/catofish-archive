@@ -1,10 +1,37 @@
 import type { I18nKeys, I18nValues } from "../built/types.d.ts";
 
+const undefinedProxy: object = new Proxy(
+	{},
+	{
+		get() {
+			return undefinedProxy;
+		},
+	},
+);
+
+// biome-ignore lint/suspicious/noExplicitAny: used intentially
+type ExplicitAny = any;
+
+const makeProxy: <T extends object>(_any: T) => T = (target: ExplicitAny) =>
+	new Proxy(target, {
+		get(target, prop) {
+			if (target[prop] == null) {
+				return undefinedProxy;
+			}
+			if (typeof target[prop] === "object") {
+				return makeProxy(target[prop]);
+			}
+			return target[prop];
+		},
+	});
+
 export class I18n {
 	public ts: I18nValues;
+	private _ts: I18nValues;
 
 	constructor(locale: I18nValues) {
-		this.ts = locale;
+		this.ts = makeProxy(locale);
+		this._ts = locale;
 
 		// #region BIND
 		this.t = this.t.bind(this);
@@ -20,7 +47,7 @@ export class I18n {
 		try {
 			let str = key
 				.split(".")
-				.reduce((o, i) => o[i as never], this.ts) as unknown as string;
+				.reduce((o, i) => o[i as never], this._ts) as unknown as string;
 
 			if (args) {
 				for (const [k, v] of Object.entries(args)) {
