@@ -1,6 +1,7 @@
 import path, { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execa } from "execa";
+import fs from "node:fs";
 
 (async () => {
 	const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -32,4 +33,6 @@ import { execa } from "execa";
 			stdio: "inherit",
 		}
 	);
+
+	fs.copyFileSync("packages/backend-rs/index.js", "packages/backend-rs/built/index.js");
 })();
