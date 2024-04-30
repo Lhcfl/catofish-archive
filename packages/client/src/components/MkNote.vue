@@ -215,7 +215,7 @@
 						@click.stop="react()"
 					>
 						<i :class="icon('ph-smiley')"></i>
-						<p class="count" v-if="reactionCount > 0 && hideEmojiViewer">{{reactionCount}}</p>
+						<p v-if="reactionCount > 0 && hideEmojiViewer" class="count">{{reactionCount}}</p>
 					</button>
 					<button
 						v-if="
@@ -228,7 +228,7 @@
 						@click.stop="undoReact(appearNote)"
 					>
 						<i :class="icon('ph-minus')"></i>
-						<p class="count" v-if="reactionCount > 0 && hideEmojiViewer">{{reactionCount}}</p>
+						<p v-if="reactionCount > 0 && hideEmojiViewer" class="count">{{reactionCount}}</p>
 					</button>
 					<XQuoteButton class="button" :note="appearNote" />
 					<button
@@ -546,6 +546,7 @@ function onContextmenu(ev: MouseEvent): void {
 					text: i18n.ts.copyLink,
 					action: () => {
 						copyToClipboard(`${url}${notePage(appearNote.value)}`);
+						os.success();
 					},
 				},
 				appearNote.value.user.host != null

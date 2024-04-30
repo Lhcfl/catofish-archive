@@ -2,6 +2,7 @@
 	<button
 		ref="el"
 		v-if="canRenote && defaultStore.state.seperateRenoteQuote"
+		ref="el"
 		v-tooltip.noDelay.bottom="i18n.ts.quote"
 		class="eddddedb _button"
 		@click.stop="quote()"
