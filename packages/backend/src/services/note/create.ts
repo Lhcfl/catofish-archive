@@ -1,9 +1,5 @@
 import * as mfm from "mfm-js";
-import {
-	publishMainStream,
-	publishNotesStream,
-	publishNoteStream,
-} from "@/services/stream.js";
+import { publishMainStream, publishNoteStream } from "@/services/stream.js";
 import DeliverManager from "@/remote/activitypub/deliver-manager.js";
 import renderNote from "@/remote/activitypub/renderer/note.js";
 import renderCreate from "@/remote/activitypub/renderer/create.js";
@@ -49,6 +45,7 @@ import {
 	genId,
 	genIdAt,
 	isSilencedServer,
+	publishToNotesStream,
 } from "backend-rs";
 import { countSameRenotes } from "@/misc/count-same-renotes.js";
 import { deliverToRelays, getCachedRelays } from "../relay.js";
@@ -66,7 +63,7 @@ import { Mutex } from "redis-semaphore";
 import { langmap } from "@/misc/langmap.js";
 import Logger from "@/services/logger.js";
 import { inspect } from "node:util";
-import { undefinedToNull } from "@/prelude/undefined-to-null.js";
+import { toRustObject } from "@/prelude/undefined-to-null.js";
 
 const logger = new Logger("create-note");
 
@@ -404,7 +401,7 @@ export default async (
 			checkHitAntenna(antenna, note, user).then((hit) => {
 				if (hit) {
 					// TODO: do this more sanely
-					addNoteToAntenna(antenna.id, undefinedToNull(note) as Note);
+					addNoteToAntenna(antenna.id, toRustObject(note));
 				}
 			});
 		}
@@ -511,7 +508,7 @@ export default async (
 								30,
 							);
 						}
-						publishNotesStream(noteToPublish);
+						publishToNotesStream(toRustObject(noteToPublish));
 					}
 				} finally {
 					await lock.release();

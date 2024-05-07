@@ -173,11 +173,15 @@ const rootEl = ref<HTMLElement>();
 const items = ref<Item[]>([]);
 const foldedItems = ref([]) as Ref<Fold[]>;
 
+function toReversed<T>(arr: T[]) {
+	return [...arr].reverse();
+}
+
 // To improve performance, we do not use vue’s `computed` here
 function calculateItems() {
 	function getItems<T>(folder: (ns: Item[]) => T[]) {
 		const res = [
-			folder(prepended.value.toReversed()),
+			folder(toReversed(prepended.value)),
 			...arrItems.value.map((arr) => folder(arr)),
 			folder(appended.value),
 		].flat(1);
@@ -351,7 +355,7 @@ async function fetch(firstFetching?: boolean) {
 
 				if (firstFetching && props.folder != null) {
 					// In this way, prepended has some initial values for folding
-					prepended.value = res.toReversed();
+					prepended.value = toReversed(res);
 				} else {
 					// For ascending and offset modes, append and prepend may cause item duplication
 					// so they need to be filtered out.
@@ -361,9 +365,9 @@ async function fetch(firstFetching?: boolean) {
 						}
 
 						// biome-ignore lint/style/noParameterAssign: assign it intentially
-						res = res.filter((item) => {
-							if (idMap.has(item)) return false;
-							idMap.set(item, true);
+						res = res.filter((it) => {
+							if (idMap.has(it.id)) return false;
+							idMap.set(it.id, true);
 							return true;
 						});
 					}
@@ -398,7 +402,7 @@ const prepend = (...item: Item[]): void => {
 		prepended.value.length >
 		(props.pagination.secondFetchLimit || SECOND_FETCH_LIMIT_DEFAULT)
 	) {
-		arrItems.value.unshift(prepended.value.toReversed());
+		arrItems.value.unshift(toReversed(prepended.value));
 		prepended.value = [];
 		// We don't need to calculate here because it won't cause any changes in items
 	}
@@ -431,8 +435,20 @@ const prepend = (...item: Item[]): void => {
 	}
 };
 
-const append = (...items: Item[]): void => {
-	appended.value.push(...items);
+const append = (...it: Item[]): void => {
+	// If there are too many appended, merge them into arrItems
+	if (
+		appended.value.length >
+		(props.pagination.secondFetchLimit || SECOND_FETCH_LIMIT_DEFAULT)
+	) {
+		for (const item of appended.value) {
+			idMap.set(item.id, true);
+		}
+		arrItems.value.push(appended.value);
+		appended.value = [];
+		// We don't need to calculate here because it won't cause any changes in items
+	}
+	appended.value.push(...it);
 	calculateItems();
 };
 
@@ -481,6 +497,8 @@ const updateItem = (id: Item["id"], replacer: (old: Item) => Item): boolean => {
 if (props.pagination.params && isRef<Param>(props.pagination.params)) {
 	watch(props.pagination.params, reload, { deep: true });
 }
+
+watch(() => props.folder, calculateItems);
 
 watch(
 	queue,
