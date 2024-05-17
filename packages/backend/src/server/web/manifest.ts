@@ -1,79 +1,101 @@
 import type Koa from "koa";
 import { fetchMeta } from "backend-rs";
 import { config } from "@/config.js";
-import manifest from "./manifest.json" assert { type: "json" };
 
-interface Manifest {
-	short_name: string;
-	name: string;
-	description: string;
-	start_url: string;
-	scope: string;
-	display: string;
-	background_color: string;
-	theme_color: string;
-	orientation: string;
-	icons: {
-		src: string;
-		sizes?: string;
-		type?: string;
-		purpose?: "any" | "maskable" | "monochrome";
-	}[];
+const manifest = {
+	short_name: "Firefish",
+	name: "Firefish",
+	description:
+		"An open source, decentralized social media platform that's free forever!",
+	start_url: "/",
+	scope: "/",
+	display: "standalone",
+	background_color: "#1f1d2e",
+	theme_color: "#31748f",
+	orientation: "natural",
+	icons: [
+		{
+			src: "/static-assets/icons/192.png",
+			sizes: "192x192",
+			type: "image/png",
+			purpose: "any",
+		},
+		{
+			src: "/static-assets/icons/512.png",
+			sizes: "512x512",
+			type: "image/png",
+			purpose: "any",
+		},
+		{
+			src: "/static-assets/icons/maskable.png",
+			sizes: "512x512",
+			type: "image/png",
+			purpose: "maskable",
+		},
+		{
+			src: "/static-assets/icons/monochrome.png",
+			sizes: "512x512",
+			type: "image/png",
+			purpose: "monochrome",
+		},
+	],
 	share_target: {
-		action: "/share/";
+		action: "/share/",
 		params: {
-			title: "title";
-			text: "text";
-			url: "url";
-		};
-	};
-	screenshots: {
-		src: string;
-		sizes: string;
-		type: string;
-		platform: string;
-		label: string;
-	}[];
-	shortcuts: {
-		name: string;
-		short_name?: string;
-		url: string;
-	}[];
-	categories: string[];
-}
+			title: "title",
+			text: "text",
+			url: "url",
+		},
+	},
+	screenshots: [
+		{
+			src: "/static-assets/screenshots/1.webp",
+			sizes: "1080x2340",
+			type: "image/webp",
+			platform: "narrow",
+			label: "Profile page",
+		},
+		{
+			src: "/static-assets/screenshots/2.webp",
+			sizes: "1080x2340",
+			type: "image/webp",
+			platform: "narrow",
+			label: "Posts",
+		},
+	],
+	shortcuts: [
+		{
+			name: "Notifications",
+			short_name: "Notifs",
+			url: "/my/notifications",
+		},
+		{
+			name: "Chats",
+			url: "/my/messaging",
+		},
+	],
+	categories: ["social"],
+};
 
 export const manifestHandler = async (ctx: Koa.Context) => {
-	// TODO
-	//const res = structuredClone(manifest);
-	const res: Manifest = JSON.parse(JSON.stringify(manifest));
+	const instance = await fetchMeta(true);
 
-	const instance = await fetchMeta(false);
-
-	res.short_name = instance.name || "Firefish";
-	res.name = instance.name || "Firefish";
-
+	manifest.short_name = instance.name || "Firefish";
+	manifest.name = instance.name || "Firefish";
+	if (instance.themeColor) manifest.theme_color = instance.themeColor;
 	if (instance.iconUrl) {
-		res.icons = [
+		manifest.icons = [
 			{
 				src: instance.iconUrl,
 				sizes: "48x48 72x72 96x96 128x128 192x192 256x256",
 				purpose: "any",
 			},
-		];
+		] as never;
 	} else {
-		for (const icon of res.icons) {
+		for (const icon of manifest.icons) {
 			icon.src = `${icon.src}?v=${config.version.replace(/[^0-9]/g, "")}`;
 		}
 	}
-
-	if (instance.themeColor) res.theme_color = instance.themeColor;
-
-	for (const screenshot of res.screenshots) {
-		screenshot.src = `${screenshot.src}?v=${config.version.replace(
-			/[^0-9]/g,
-			"",
-		)}`;
-	}
 	ctx.set("Cache-Control", "max-age=300");
-	ctx.body = res;
+	ctx.body = manifest;
 };

@@ -18,7 +18,7 @@ import { config } from "@/config.js";
 import { noteVisibilities } from "@/types.js";
 import { ApiError } from "@/server/api/error.js";
 import define from "@/server/api/define.js";
-import { HOUR } from "backend-rs";
+import { genId, HOUR } from "backend-rs";
 import { getNote } from "@/server/api/common/getters.js";
 import { Poll } from "@/models/entities/poll.js";
 import * as mfm from "mfm-js";
@@ -26,7 +26,6 @@ import { concat } from "@/prelude/array.js";
 import { extractHashtags } from "@/misc/extract-hashtags.js";
 import { extractCustomEmojisFromMfm } from "@/misc/extract-custom-emojis-from-mfm.js";
 import { extractMentionedUsers } from "@/services/note/create.js";
-import { genId } from "backend-rs";
 import { publishNoteStream } from "@/services/stream.js";
 import DeliverManager from "@/remote/activitypub/deliver-manager.js";
 import { renderActivity } from "@/remote/activitypub/renderer/index.js";
@@ -34,7 +33,7 @@ import renderNote from "@/remote/activitypub/renderer/note.js";
 import renderUpdate from "@/remote/activitypub/renderer/update.js";
 import { deliverToRelays } from "@/services/relay.js";
 // import { deliverQuestionUpdate } from "@/services/note/polls/update.js";
-import { langmap } from "@/misc/langmap.js";
+import { langmap } from "firefish-js";
 
 export const meta = {
 	tags: ["notes"],

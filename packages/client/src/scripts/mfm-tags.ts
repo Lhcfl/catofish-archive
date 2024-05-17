@@ -22,7 +22,6 @@ export const MFM_TAGS = [
 	"rotate",
 	"fade",
 	"small",
-	"center",
 	"ruby",
 	"unixtime",
 ];

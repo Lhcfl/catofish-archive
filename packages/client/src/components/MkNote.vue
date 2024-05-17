@@ -18,8 +18,8 @@
 			class="reply-to"
 		/>
 		<MkNoteSub
-			v-else-if="!detailedView && !collapsedReply && parents"
 			v-for="n of parents"
+			v-else-if="!detailedView && !collapsedReply && parents"
 			:key="n.id"
 			:note="n"
 			class="reply-to"
@@ -123,7 +123,11 @@
 							v-if="isMyNote"
 							:class="icon('ph-dots-three-outline dropdownIcon')"
 						></i>
-						<MkTime :time="note.createdAt" />
+						<MkTime 
+							v-if="(renotesSliced && renotesSliced.length > 0)"
+							:time="renotesSliced[0].createdAt"
+						/>
+						<MkTime v-else :time="note.createdAt" />
 					</button>
 					<MkVisibility :note="note" />
 				</div>
@@ -354,7 +358,7 @@ import { deepClone } from "@/scripts/clone";
 import { getNoteSummary } from "@/scripts/get-note-summary";
 import icon from "@/scripts/icon";
 import type { NoteTranslation, NoteType } from "@/types/note";
-import { isRenote as _isRenote, isDeleted as _isDeleted } from "@/scripts/note";
+import { isDeleted as _isDeleted, isRenote as _isRenote } from "@/scripts/note";
 
 const props = defineProps<{
 	note: NoteType;
@@ -368,7 +372,7 @@ const props = defineProps<{
 	isLongJudger?: (note: entities.Note) => boolean;
 }>();
 
-//#region Constants
+// #region Constants
 const router = useRouter();
 const inChannel = inject("inChannel", null);
 const keymap = {
@@ -398,9 +402,9 @@ const currentClipPage = inject<Ref<entities.Clip> | null>(
 	"currentClipPage",
 	null,
 );
-//#endregion
+// #endregion
 
-//#region Variables bound to Notes
+// #region Variables bound to Notes
 let capture: ReturnType<typeof useNoteCapture> | undefined;
 const note = ref(deepClone(props.note));
 const postIsExpanded = ref(false);
@@ -408,9 +412,9 @@ const translation = ref<NoteTranslation | null>(null);
 const translating = ref(false);
 const isDeleted = ref(false);
 const renotes = ref(props.renotes?.filter((rn) => !_isDeleted(rn.id)));
-//#endregion
+// #endregion
 
-//#region computed
+// #region computed
 
 const renotesSliced = computed(() => renotes.value?.slice(0, 5));
 
@@ -470,7 +474,7 @@ const accessibleLabel = computed(() => {
 	label += `${date.toLocaleTimeString()}`;
 	return label;
 });
-//#endregion
+// #endregion
 
 async function pluginInit(newNote: NoteType) {
 	// plugin

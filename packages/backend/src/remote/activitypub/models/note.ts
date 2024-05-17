@@ -16,7 +16,9 @@ import type { DriveFile } from "@/models/entities/drive-file.js";
 import {
 	type ImageSize,
 	extractHost,
+	genId,
 	getImageSizeFromUrl,
+	isBlockedServer,
 	isSameOrigin,
 	toPuny,
 } from "backend-rs";
@@ -39,7 +41,6 @@ import {
 	getApType,
 } from "../type.js";
 import type { Emoji } from "@/models/entities/emoji.js";
-import { genId, isBlockedServer } from "backend-rs";
 import { getApLock } from "@/misc/app-lock.js";
 import { createMessage } from "@/services/messages/create.js";
 import { parseAudience } from "../audience.js";
@@ -52,7 +53,7 @@ import { UserProfiles } from "@/models/index.js";
 import { In } from "typeorm";
 import { config } from "@/config.js";
 import { truncate } from "@/misc/truncate.js";
-import { langmap } from "@/misc/langmap.js";
+import { langmap } from "firefish-js";
 import { inspect } from "node:util";
 
 export function validateNote(object: any, uri: string) {
