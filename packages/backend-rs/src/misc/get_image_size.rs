@@ -55,10 +55,12 @@ pub async fn get_image_size_from_url(url: &str) -> Result<ImageSize, Error> {
     {
         let _ = MTX_GUARD.lock().await;
 
-        attempted = cache::get_one::<bool>(cache::Category::FetchUrl, url)?.is_some();
+        attempted = cache::get_one::<bool>(cache::Category::FetchUrl, url)
+            .await?
+            .is_some();
 
         if !attempted {
-            cache::set_one(cache::Category::FetchUrl, url, &true, 10 * 60)?;
+            cache::set_one(cache::Category::FetchUrl, url, &true, 10 * 60).await?;
         }
     }
 
@@ -67,7 +69,7 @@ pub async fn get_image_size_from_url(url: &str) -> Result<ImageSize, Error> {
         return Err(Error::TooManyAttempts(url.to_string()));
     }
 
-    tracing::info!("retrieving image size from {}", url);
+    tracing::info!("retrieving image from {}", url);
 
     let mut response = http_client::client()?.get(url)?;
 
@@ -138,7 +140,7 @@ mod unit_test {
         let mp3_url = "https://firefish.dev/firefish/firefish/-/blob/5891a90f71a8b9d5ea99c683ade7e485c685d642/packages/backend/assets/sounds/aisha/1.mp3";
 
         // delete caches in case you run this test multiple times
-        cache::delete_all(cache::Category::FetchUrl).unwrap();
+        cache::delete_all(cache::Category::FetchUrl).await.unwrap();
 
         let png_size_1 = ImageSize {
             width: 1024,
@@ -207,7 +209,9 @@ mod unit_test {
         let url = "https://firefish.dev/firefish/firefish/-/raw/5891a90f71a8b9d5ea99c683ade7e485c685d642/packages/backend/assets/splash.png";
 
         // delete caches in case you run this test multiple times
-        cache::delete_one(cache::Category::FetchUrl, url).unwrap();
+        cache::delete_one(cache::Category::FetchUrl, url)
+            .await
+            .unwrap();
 
         assert!(get_image_size_from_url(url).await.is_ok());
         assert!(get_image_size_from_url(url).await.is_err());

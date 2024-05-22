@@ -1,6 +1,5 @@
 import type Koa from "koa";
 import { fetchMeta } from "backend-rs";
-import { config } from "@/config.js";
 
 const manifest = {
 	short_name: "Firefish",
@@ -91,11 +90,8 @@ export const manifestHandler = async (ctx: Koa.Context) => {
 				purpose: "any",
 			},
 		] as never;
-	} else {
-		for (const icon of manifest.icons) {
-			icon.src = `${icon.src}?v=${config.version.replace(/[^0-9]/g, "")}`;
-		}
 	}
+
 	ctx.set("Cache-Control", "max-age=300");
 	ctx.body = manifest;
 };

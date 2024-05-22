@@ -7,8 +7,8 @@ pub mod group_chat;
 pub mod moderation;
 
 use crate::config::CONFIG;
-use crate::database::redis_conn;
-use redis::{Commands, RedisError};
+use crate::database::{redis_conn, RedisConnError};
+use redis::{AsyncCommands, RedisError};
 
 #[derive(strum::Display)]
 pub enum Stream {
@@ -48,14 +48,16 @@ pub enum Stream {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Redis error: {0}")]
-    RedisError(#[from] RedisError),
+    RedisErr(#[from] RedisError),
+    #[error("Redis connection error: {0}")]
+    RedisConnErr(#[from] RedisConnError),
     #[error("Json (de)serialization error: {0}")]
-    JsonError(#[from] serde_json::Error),
+    JsonErr(#[from] serde_json::Error),
     #[error("Value error: {0}")]
-    ValueError(String),
+    ValueErr(String),
 }
 
-pub fn publish_to_stream(
+pub async fn publish_to_stream(
     stream: &Stream,
     kind: Option<String>,
     value: Option<String>,
@@ -67,13 +69,16 @@ pub fn publish_to_stream(
             value.unwrap_or("null".to_string()),
         )
     } else {
-        value.ok_or(Error::ValueError("Invalid streaming message".to_string()))?
+        value.ok_or(Error::ValueErr("Invalid streaming message".to_string()))?
     };
 
-    redis_conn()?.publish(
-        &CONFIG.host,
-        format!("{{\"channel\":\"{}\",\"message\":{}}}", stream, message),
-    )?;
+    redis_conn()
+        .await?
+        .publish(
+            &CONFIG.host,
+            format!("{{\"channel\":\"{}\",\"message\":{}}}", stream, message),
+        )
+        .await?;
 
     Ok(())
 }

@@ -14,11 +14,11 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: String,
     #[sea_orm(column_name = "createdAt")]
-    pub created_at: DateTime,
+    pub created_at: DateTimeWithTimeZone,
     #[sea_orm(column_name = "updatedAt")]
-    pub updated_at: Option<DateTime>,
+    pub updated_at: Option<DateTimeWithTimeZone>,
     #[sea_orm(column_name = "lastFetchedAt")]
-    pub last_fetched_at: Option<DateTime>,
+    pub last_fetched_at: Option<DateTimeWithTimeZone>,
     pub username: String,
     #[sea_orm(column_name = "usernameLower")]
     pub username_lower: String,
@@ -62,7 +62,7 @@ pub struct Model {
     #[sea_orm(column_name = "followersUri")]
     pub followers_uri: Option<String>,
     #[sea_orm(column_name = "lastActiveDate")]
-    pub last_active_date: Option<DateTime>,
+    pub last_active_date: Option<DateTimeWithTimeZone>,
     #[sea_orm(column_name = "hideOnlineStatus")]
     pub hide_online_status: bool,
     #[sea_orm(column_name = "isDeleted")]
@@ -153,6 +153,8 @@ pub enum Relation {
     PromoRead,
     #[sea_orm(has_many = "super::registry_item::Entity")]
     RegistryItem,
+    #[sea_orm(has_many = "super::scheduled_note::Entity")]
+    ScheduledNote,
     #[sea_orm(has_many = "super::signin::Entity")]
     Signin,
     #[sea_orm(has_many = "super::sw_subscription::Entity")]
@@ -342,6 +344,12 @@ impl Related<super::promo_read::Entity> for Entity {
 impl Related<super::registry_item::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::RegistryItem.def()
+    }
+}
+
+impl Related<super::scheduled_note::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ScheduledNote.def()
     }
 }
 
