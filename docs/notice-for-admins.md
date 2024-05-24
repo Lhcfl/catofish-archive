@@ -4,6 +4,12 @@ You can skip intermediate versions when upgrading from an old version, but pleas
 
 ## Unreleased
 
+### For systemd/pm2 users
+
+Required Node.js version has been bumped from v18.17.0 to v18.19.0. Also, as written in the [v20240430 note](https://firefish.dev/firefish/firefish/-/blob/d3394b97f021dea323ec3ae36e39930680242482/docs/notice-for-admins.md#v20240430), it is highly recommended that you use an even newer version since v18.19.0 has known vulnerabilities.
+
+## v20240523
+
 ### For all users
 
 We regret to inform you that the upgrade may take a long time to fix a regression we have introduced. The time required to upgrade should be the same as [v20240413](<https://firefish.dev/firefish/firefish/-/blob/main/docs/notice-for-admins.md#v20240413>). This is not a security fix, so please upgrade your server when you have enough time. We are sorry for the inconvenience.
