@@ -13,9 +13,9 @@ export const USER_ACTIVE_THRESHOLD: number
  * List of file types allowed to be viewed directly in the browser
  * Anything not included here will be responded as application/octet-stream
  * SVG is not allowed because it generates XSS <- we need to fix this and later allow it to be viewed directly
- * https://github.com/sindresorhus/file-type/blob/main/supported.js
- * https://github.com/sindresorhus/file-type/blob/main/core.js
- * https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers
+ * <https://github.com/sindresorhus/file-type/blob/main/supported.js>
+ * <https://github.com/sindresorhus/file-type/blob/main/core.js>
+ * <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers>
  */
 export const FILE_TYPE_BROWSERSAFE: string[]
 export interface EnvConfig {
@@ -232,6 +232,7 @@ export function extractHost(uri: string): string
 export function toPuny(host: string): string
 export function isUnicodeEmoji(s: string): boolean
 export function sqlLikeEscape(src: string): string
+export function sqlRegexEscape(src: string): string
 export function safeForSql(src: string): boolean
 /** Convert milliseconds to a human readable string */
 export function formatMilliseconds(milliseconds: number): string
@@ -240,7 +241,6 @@ export interface ImageSize {
   height: number
 }
 export function getImageSizeFromUrl(url: string): Promise<ImageSize>
-/** TODO: handle name collisions better */
 export interface NoteLikeForAllTexts {
   fileIds: Array<string>
   userId: string
@@ -256,11 +256,15 @@ export interface NoteLikeForGetNoteSummary {
   hasPoll: boolean
 }
 export function getNoteSummary(note: NoteLikeForGetNoteSummary): string
-export function isQuote(note: Note): boolean
+export interface NoteLikeForIsQuote {
+  renoteId: string | null
+  text: string | null
+  hasPoll: boolean
+  fileIds: Array<string>
+}
+export function isQuote(note: NoteLikeForIsQuote): boolean
 export function isSafeUrl(url: string): boolean
 export function latestVersion(): Promise<string>
-export function toMastodonId(firefishId: string): string | null
-export function fromMastodonId(mastodonId: string): string | null
 export function fetchMeta(useCache: boolean): Promise<Meta>
 export interface PugArgs {
   img: string | null
@@ -327,7 +331,7 @@ export interface AccessToken {
   createdAt: DateTimeWithTimeZone
   token: string
   hash: string
-  userId: string
+  userId: string | null
   appId: string | null
   lastUsedAt: DateTimeWithTimeZone | null
   session: string | null
@@ -1003,6 +1007,8 @@ export interface SwSubscription {
   auth: string
   publickey: string
   sendReadMessage: boolean
+  appAccessTokenId: string | null
+  subscriptionTypes: Array<string>
 }
 export interface UsedUsername {
   username: string
@@ -1143,6 +1149,7 @@ export interface UserProfile {
   preventAiLearning: boolean
   isIndexable: boolean
   mutedPatterns: Array<string>
+  mentions: Json
   mutedInstances: Array<string>
   mutedWords: Array<string>
   lang: string | null
@@ -1175,7 +1182,7 @@ export function updateAntennasOnNewNote(note: Note, noteAuthor: Acct, noteMutedU
 export function fetchNodeinfo(host: string): Promise<Nodeinfo>
 export function nodeinfo_2_1(): Promise<any>
 export function nodeinfo_2_0(): Promise<any>
-/** NodeInfo schema version 2.0. https://nodeinfo.diaspora.software/docson/index.html#/ns/schema/2.0 */
+/** NodeInfo schema version 2.0. <https://nodeinfo.diaspora.software/docson/index.html#/ns/schema/2.0> */
 export interface Nodeinfo {
   /** The schema version, must be 2.0. */
   version: string
@@ -1324,7 +1331,7 @@ export function getTimestamp(id: string): number
  * With the length of 16, namely 8 for cuid2, roughly 1427399 IDs are needed
  * in the same millisecond to reach 50% chance of collision.
  *
- * Ref: https://github.com/paralleldrive/cuid2#parameterized-length
+ * Ref: <https://github.com/paralleldrive/cuid2#parameterized-length>
  */
 export function genId(): string
 /** Generate an ID using a specific datetime */

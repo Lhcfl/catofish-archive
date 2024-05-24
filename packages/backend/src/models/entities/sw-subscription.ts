@@ -9,6 +9,7 @@ import {
 } from "typeorm";
 import { User } from "./user.js";
 import { id } from "../id.js";
+import { AccessToken } from "./access-token.js";
 
 @Entity()
 export class SwSubscription {
@@ -42,11 +43,39 @@ export class SwSubscription {
 	})
 	public sendReadMessage: boolean;
 
+	/**
+	 * Type of subscription, used for Mastodon API notifications.
+	 * Empty for Misskey notifications.
+	 */
+	@Column("varchar", {
+		length: 64,
+		array: true,
+		default: "{}",
+	})
+	public subscriptionTypes: string[];
+
+	/**
+	 * App notification app, used for Mastodon API notifications
+	 */
+	@Index()
+	@Column({
+		...id(),
+		nullable: true,
+	})
+	public appAccessTokenId: AccessToken["id"] | null;
+
 	//#region Relations
 	@ManyToOne(() => User, {
 		onDelete: "CASCADE",
 	})
 	@JoinColumn()
 	public user: Relation<User>;
+
+	@ManyToOne(() => AccessToken, {
+		onDelete: "CASCADE",
+		nullable: true,
+	})
+	@JoinColumn()
+	public appAccessToken: Relation<AccessToken | null>;
 	//#endregion
 }
