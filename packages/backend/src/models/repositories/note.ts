@@ -10,11 +10,16 @@ import {
 	Followings,
 	Polls,
 	Channels,
+	UserProfiles,
 	Notes,
-	ScheduledNotes,
 } from "../index.js";
 import type { Packed } from "@/misc/schema.js";
-import { countReactions, decodeReaction, nyaify } from "backend-rs";
+import {
+	countReactions,
+	decodeReaction,
+	nyaify,
+	shouldNyaify,
+} from "backend-rs";
 import { awaitAll } from "@/prelude/await-all.js";
 import type { NoteReaction } from "@/models/entities/note-reaction.js";
 import {
@@ -24,6 +29,7 @@ import {
 } from "@/misc/populate-emojis.js";
 import { db } from "@/db/postgre.js";
 import { IdentifiableError } from "@/misc/identifiable-error.js";
+import { config } from "@/config.js";
 
 export async function populatePoll(note: Note, meId: User["id"] | null) {
 	const poll = await Polls.findOneByOrFail({ noteId: note.id });
@@ -146,6 +152,29 @@ export const NoteRepository = db.getRepository(Note).extend({
 		return true;
 	},
 
+	async mentionedRemoteUsers(note: Note): Promise<string | undefined> {
+		if (note.mentions?.length) {
+			const mentionedUserIds = [...new Set(note.mentions)].sort();
+			const mentionedUsers = await Users.findBy({
+				id: In(mentionedUserIds),
+			});
+			const userProfiles = await UserProfiles.findBy({
+				userId: In(mentionedUserIds),
+			});
+			return JSON.stringify(
+				mentionedUsers.map((u) => ({
+					username: u.username,
+					host: u.host ?? config.host,
+					uri: u.uri ?? `${config.url}/users/${u.id}`,
+					url:
+						userProfiles.find((p) => p.userId === u.id)?.url ??
+						`${config.url}/@${u.username}`,
+				})),
+			);
+		}
+		return undefined;
+	},
+
 	async pack(
 		src: Note["id"] | Note,
 		me?: { id: User["id"] } | null | undefined,
@@ -199,19 +228,17 @@ export const NoteRepository = db.getRepository(Note).extend({
 			host,
 		);
 
-		let scheduledAt: string | undefined;
-		if (note.visibility === "specified" && note.visibleUserIds.length === 0) {
-			scheduledAt = (
-				await ScheduledNotes.findOneBy({
-					noteId: note.id,
-				})
-			)?.scheduledAt?.toISOString();
-		}
-
 		const reactionEmoji = await populateEmojis(reactionEmojiNames, host);
 		const packed: Packed<"Note"> = await awaitAll({
 			id: note.id,
 			createdAt: note.createdAt.toISOString(),
+			// FIXME: note.scheduledAt should be a `Date`
+			scheduledAt:
+				note.scheduledAt == null
+					? undefined
+					: typeof note.scheduledAt === "string"
+						? note.scheduledAt
+						: note.scheduledAt?.toISOString(),
 			userId: note.userId,
 			user: Users.pack(note.user ?? note.userId, me, {
 				detail: false,
@@ -241,7 +268,6 @@ export const NoteRepository = db.getRepository(Note).extend({
 						},
 					})
 				: undefined,
-			scheduledAt,
 			reactions: countReactions(note.reactions),
 			reactionEmojis: reactionEmoji,
 			emojis: noteEmoji,
@@ -287,9 +313,16 @@ export const NoteRepository = db.getRepository(Note).extend({
 					}
 				: {}),
 			lang: note.lang,
+			mentionedRemoteUsers: this.mentionedRemoteUsers(note),
 		});
 
-		if (packed.user.isCat && packed.user.speakAsCat && packed.text) {
+		if (
+			packed.user.isCat &&
+			packed.user.speakAsCat &&
+			packed.text != null &&
+			meId != null &&
+			(await shouldNyaify(meId))
+		) {
 			const tokens = packed.text ? mfm.parse(packed.text) : [];
 			function nyaifyNode(node: mfm.MfmNode) {
 				if (node.type === "quote") return;

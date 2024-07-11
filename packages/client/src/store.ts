@@ -449,9 +449,13 @@ export const defaultStore = markRaw(
 			where: "account",
 			default: false,
 		},
+		addAlt4MeTag: {
+			where: "account",
+			default: false,
+		},
 		autocorrectNoteLanguage: {
 			where: "account",
-			default: true,
+			default: false,
 		},
 		foldNotification: {
 			where: "deviceAccount",

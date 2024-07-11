@@ -1,7 +1,7 @@
 import JSON5 from "json5";
 import { IsNull, MoreThan } from "typeorm";
 import { config } from "@/config.js";
-import { fetchMeta } from "backend-rs";
+import { countLocalUsers, fetchMeta } from "backend-rs";
 import { Ads, Emojis, Users } from "@/models/index.js";
 import define from "@/server/api/define.js";
 
@@ -402,7 +402,7 @@ export const paramDef = {
 } as const;
 
 export default define(meta, paramDef, async (ps, me) => {
-	const instance = await fetchMeta(false);
+	const instance = await fetchMeta();
 
 	const emojis = await Emojis.find({
 		where: {
@@ -501,11 +501,7 @@ export default define(meta, paramDef, async (ps, me) => {
 						instance.privateMode && !me ? [] : instance.pinnedClipId,
 					cacheRemoteFiles: instance.cacheRemoteFiles,
 					markLocalFilesNsfwByDefault: instance.markLocalFilesNsfwByDefault,
-					requireSetup:
-						(await Users.countBy({
-							host: IsNull(),
-							isAdmin: true,
-						})) === 0,
+					requireSetup: (await countLocalUsers()) === 0,
 				}
 			: {}),
 	};

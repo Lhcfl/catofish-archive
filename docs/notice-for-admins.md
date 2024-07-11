@@ -1,8 +1,54 @@
 # Notice for server administrators
 
-You can skip intermediate versions when upgrading from an old version, but please read the notices and follow the instructions for each intermediate version before [upgrading](./upgrade.md).
+You can skip intermediate versions when upgrading from an old version, but please read the notices and follow the instructions for each intermediate version before [upgrading](https://firefish.dev/firefish/firefish/-/blob/main/docs/upgrade.md).
+
+## Upcoming breaking change (unreleased)
+
+Please take a look at #10947.
 
 ## Unreleased
+
+### For systemd/pm2 users
+
+You can remove the `packages/megalodon` directory after pulling the latest source code (`git pull --ff origin main`).
+
+```sh
+rm --recursive --force packages/megalodon
+```
+
+## v20240710
+
+### For all users
+
+This is not related to the recent changes, but we have added a new section called "[Maintain the server](https://firefish.dev/firefish/firefish/-/blob/v20240710/docs/install.md#maintain-the-server)" in the installation guide. We suggest that you take a look at it (and we welcome your docs contributions)!
+
+### For systemd/pm2 users
+
+It is highly recommended that you upgrade Node.js, since [there is a new security release](<https://nodejs.org/en/blog/vulnerability/july-2024-security-releases>).
+
+The new versions are:
+  - Node v18.20.4 (v18.x LTS)
+  - Node v20.15.1 (v20.x LTS)
+  - Node v22.4.1 (v22.x)
+
+[Node v21.x is end-of-life](<https://github.com/nodejs/Release?tab=readme-ov-file#end-of-life-releases>).
+
+### :warning: For Docker/Podman users
+
+This is a security release for you, since the container image for this version is based on the updated Node.js image.
+
+## v20240607
+
+The following environment variables are deprecated and no longer have any effect:
+- `MK_ONLY_QUEUE`
+- `MK_ONLY_SERVER`
+- `MK_NO_DAEMONS`
+- `MK_DISABLE_CLUSTERING`
+- `MK_VERBOSE`
+- `MK_WITH_LOG_TIME`
+- `MK_SLOW`
+
+## v20240601
 
 ### For systemd/pm2 users
 
@@ -32,7 +78,7 @@ Therefore, we have contributed to napi-rs to add support for `DateTime<FixedOffs
 
 ### For systemd/pm2 users
 
-There is a bug where `pnpm install --frozen-lockfile` may fail on Linux 6.9.x ([GitHub issue](<https://github.com/nodejs/node/issues/53051>)).
+There is a bug where `pnpm install --frozen-lockfile` may fail on Linux 6.9.0, 6.9.1, and 6.9.2 ([GitHub issue](<https://github.com/nodejs/node/issues/53051>)).
 
 To check your Linux kernel version, run:
 
@@ -56,8 +102,8 @@ You can control the verbosity of the server log by adding `maxLogLevel` in `.con
 
 - You need to install Perl to build Firefish. Since Git depends on Perl in many packaging systems, you probably already have Perl installed on your system. You can check the Perl version by this command:
   ```sh
-	perl --version
-	```
+  perl --version
+  ```
 - Not only Firefish but also Node.js has recently fixed a few security issues:
   - https://nodejs.org/en/blog/vulnerability/april-2024-security-releases
   - https://nodejs.org/en/blog/vulnerability/april-2024-security-releases-2

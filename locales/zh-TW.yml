@@ -242,6 +242,7 @@ usernameOrUserId: "使用者名稱或使用者ID"
 noSuchUser: "使用者不存在"
 lookup: "查詢"
 announcements: "公告"
+announcement: "公告"
 imageUrl: "圖片URL"
 remove: "刪除"
 removed: "已成功刪除"
@@ -448,7 +449,7 @@ tooShort: "過短"
 tooLong: "過長"
 weakPassword: "密碼強度過弱"
 normalPassword: "密碼強度普通"
-strongPassword: "密碼強度高"
+veryStrongPassword: "密碼強度高"
 passwordMatched: "密碼一致"
 passwordNotMatched: "密碼不一致"
 signinWith: "以{x}登錄"
@@ -1971,7 +1972,6 @@ _feeds:
   rss: RSS
   copyFeed: 複製訂閱URL
   jsonFeed: JSON Feed
-emojiPackCreator: 表情包的作者
 importZip: 匯入ZIP
 delete2fa: 停用二階段認證(2FA)
 confirm: 確認

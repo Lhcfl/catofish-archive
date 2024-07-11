@@ -1,7 +1,8 @@
-import { publishDriveStream } from "@/services/stream.js";
+import { publishToDriveFolderStream } from "backend-rs";
 import define from "@/server/api/define.js";
 import { ApiError } from "@/server/api/error.js";
 import { DriveFolders } from "@/models/index.js";
+import { toRustObject } from "@/prelude/undefined-to-null.js";
 
 export const meta = {
 	tags: ["drive"],
@@ -84,10 +85,10 @@ export default define(meta, paramDef, async (ps, user) => {
 					id: folderId,
 				});
 
-				if (folder2!.id === folder!.id) {
+				if (folder2?.id === folder.id) {
 					return true;
-				} else if (folder2!.parentId) {
-					return await checkCircle(folder2!.parentId);
+				} else if (folder2?.parentId) {
+					return await checkCircle(folder2?.parentId);
 				} else {
 					return false;
 				}
@@ -112,7 +113,7 @@ export default define(meta, paramDef, async (ps, user) => {
 	const folderObj = await DriveFolders.pack(folder);
 
 	// Publish folderUpdated event
-	publishDriveStream(user.id, "folderUpdated", folderObj);
+	publishToDriveFolderStream(user.id, "update", toRustObject(folder));
 
 	return folderObj;
 });

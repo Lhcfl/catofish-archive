@@ -571,7 +571,7 @@ youHaveNoGroups: Du har ingen grupper
 noHistory: Ingen historikk er tilgjengelig
 aboutX: Om {x}
 signinHistory: Innloggings-historikk
-strongPassword: Sterkt passord
+veryStrongPassword: Sterkt passord
 noFollowRequests: Du har ingen utestående følgeforespørsler
 openImageInNewTab: Åpne bilder i ny fane
 dashboard: Dashbord
@@ -1859,7 +1859,6 @@ enterSendsMessage: Trykk enter for å sende meldinger. (Hvis avslått må du try
 confirmToUnclipAlreadyClippedNote: Denne posten er allerede en del av utklippet "{name}".
   Vil du fjerne den fra dette utklippet i stedet?
 showWithSparkles: Vis med gnister
-emojiPackCreator: Emoji-pakke-bygger
 importZip: Importer zip-fil
 pushNotificationAlreadySubscribed: Push-varsler er allerede påslått
 ratio: Forhold

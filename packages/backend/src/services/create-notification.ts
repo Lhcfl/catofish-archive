@@ -7,15 +7,11 @@ import {
 	Users,
 	Followings,
 } from "@/models/index.js";
-import {
-	genId,
-	isSilencedServer,
-	sendPushNotification,
-	PushNotificationKind,
-} from "backend-rs";
+import { genIdAt, isSilencedServer, sendPushNotification } from "backend-rs";
 import type { User } from "@/models/entities/user.js";
 import type { Notification } from "@/models/entities/notification.js";
 import { sendEmailNotification } from "./send-email-notification.js";
+import { NotificationConverter } from "@/server/api/mastodon/converters/notification.js";
 
 export async function createNotification(
 	notifieeId: User["id"],
@@ -39,8 +35,9 @@ export async function createNotification(
 			(notifier.isSilenced ||
 				(Users.isRemoteUser(notifier) &&
 					(await isSilencedServer(notifier.host)))) &&
-			!(await Followings.exists({
-				where: { followerId: notifieeId, followeeId: data.notifierId },
+			!(await Followings.existsBy({
+				followerId: notifieeId,
+				followeeId: data.notifierId,
 			}))
 		)
 			return null;
@@ -61,10 +58,12 @@ export async function createNotification(
 		}
 	}
 
+	const now = new Date();
+
 	// Create notification
 	const notification = await Notifications.insert({
-		id: genId(),
-		createdAt: new Date(),
+		id: genIdAt(now),
+		createdAt: now,
 		notifieeId: notifieeId,
 		type: type,
 		// 相手がこの通知をミュートしているようなら、既読を予めつけておく
@@ -85,11 +84,19 @@ export async function createNotification(
 		if (fresh == null) return; // 既に削除されているかもしれない
 		// We execute this before, because the server side "read" check doesnt work well with push notifications, the app and service worker will decide themself
 		// when it is best to show push notifications
+		await sendPushNotification(notifieeId, "generic", packed);
+
+		const userProfileLang =
+			(await UserProfiles.findOneBy({ userId: notifieeId }))?.lang ?? undefined;
 		await sendPushNotification(
 			notifieeId,
-			PushNotificationKind.Generic,
-			packed,
+			"mastodon",
+			await NotificationConverter.encodePushNotificationPayloadForRust(
+				packed,
+				userProfileLang,
+			),
 		);
+
 		if (fresh.isRead) return;
 
 		//#region ただしミュートしているユーザーからの通知なら無視

@@ -31,6 +31,11 @@ export class Note {
 	})
 	public createdAt: Date;
 
+	@Column("timestamp with time zone", {
+		nullable: true,
+	})
+	public scheduledAt: Date | null;
+
 	@Index()
 	@Column({
 		...id(),
@@ -307,9 +312,11 @@ export class Note {
 	}
 }
 
-export type IMentionedRemoteUsers = {
+export type IMentionedRemoteUser = {
 	uri: string;
 	url?: string;
 	username: string;
 	host: string;
-}[];
+};
+
+export type IMentionedRemoteUsers = IMentionedRemoteUser[];

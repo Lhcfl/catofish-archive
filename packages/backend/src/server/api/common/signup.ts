@@ -3,7 +3,13 @@ import { User } from "@/models/entities/user.js";
 import { Users, UsedUsernames } from "@/models/index.js";
 import { UserProfile } from "@/models/entities/user-profile.js";
 import { IsNull } from "typeorm";
-import { genId, generateUserToken, hashPassword, toPuny } from "backend-rs";
+import {
+	countLocalUsers,
+	genIdAt,
+	generateUserToken,
+	hashPassword,
+	toPuny,
+} from "backend-rs";
 import { UserKeypair } from "@/models/entities/user-keypair.js";
 import { UsedUsername } from "@/models/entities/used-username.js";
 import { db } from "@/db/postgre.js";
@@ -18,9 +24,7 @@ export async function signup(opts: {
 	const { username, password, passwordHash, host } = opts;
 	let hash = passwordHash;
 
-	const userCount = await Users.countBy({
-		host: IsNull(),
-	});
+	const userCount = await countLocalUsers();
 
 	if (config.maxUserSignups != null && userCount > config.maxUserSignups) {
 		throw new Error("MAX_USERS_REACHED");
@@ -82,28 +86,28 @@ export async function signup(opts: {
 
 	let account!: User;
 
+	const exists = await Users.existsBy({
+		usernameLower: username.toLowerCase(),
+		host: IsNull(),
+	});
+
+	if (exists) {
+		throw new Error("the username is already used");
+	}
+
 	// Start transaction
 	await db.transaction(async (transactionalEntityManager) => {
-		const exist = await transactionalEntityManager.findOneBy(User, {
-			usernameLower: username.toLowerCase(),
-			host: IsNull(),
-		});
-
-		if (exist) throw new Error(" the username is already used");
+		const now = new Date();
 
 		account = await transactionalEntityManager.save(
 			new User({
-				id: genId(),
-				createdAt: new Date(),
+				id: genIdAt(now),
+				createdAt: now,
 				username: username,
 				usernameLower: username.toLowerCase(),
 				host: host == null ? null : toPuny(host),
 				token: secret,
-				isAdmin:
-					(await Users.countBy({
-						host: IsNull(),
-						isAdmin: true,
-					})) === 0,
+				isAdmin: (await countLocalUsers()) === 0,
 			}),
 		);
 
@@ -125,7 +129,7 @@ export async function signup(opts: {
 
 		await transactionalEntityManager.save(
 			new UsedUsername({
-				createdAt: new Date(),
+				createdAt: now,
 				username: username.toLowerCase(),
 			}),
 		);

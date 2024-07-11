@@ -464,7 +464,7 @@ tooShort: "Terlalu pendek"
 tooLong: "Terlalu panjang"
 weakPassword: "Kata sandi lemah"
 normalPassword: "Kata sandi baik"
-strongPassword: "Kata sandi kuat"
+veryStrongPassword: "Kata sandi kuat"
 passwordMatched: "Kata sandi sama"
 passwordNotMatched: "Kata sandi tidak sama"
 signinWith: "Masuk dengan {x}"
@@ -2147,7 +2147,6 @@ addRe: Tambahkan "re:" pada awal komentar balasan postingan dengan peringatan ko
 confirm: Konfirmasi
 importZip: Impor ZIP
 exportZip: Ekspor ZIP
-emojiPackCreator: Pembuat paket emoji
 detectPostLanguage: Deteksi bahasa secara otomatis dan tampilkan tombol terjemahkan
   untuk kiriman dalam bahasa asing
 indexableDescription: Perbolehkan pencarian di sini untuk menampilkan kiriman publikmu
