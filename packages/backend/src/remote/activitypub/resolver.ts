@@ -1,11 +1,13 @@
 import { config } from "@/config.js";
 import type { ILocalUser } from "@/models/entities/user.js";
-import { getInstanceActor } from "@/services/instance-actor.js";
 import {
 	extractHost,
+	getInstanceActor,
 	isAllowedServer,
 	isBlockedServer,
 	isSelfHost,
+	renderFollow,
+	renderLike,
 } from "backend-rs";
 import { apGet } from "./request.js";
 import type { IObject, ICollection, IOrderedCollection } from "./type.js";
@@ -19,12 +21,10 @@ import {
 } from "@/models/index.js";
 import { parseUri } from "./db-resolver.js";
 import renderNote from "@/remote/activitypub/renderer/note.js";
-import { renderLike } from "@/remote/activitypub/renderer/like.js";
 import { renderPerson } from "@/remote/activitypub/renderer/person.js";
 import renderQuestion from "@/remote/activitypub/renderer/question.js";
 import renderCreate from "@/remote/activitypub/renderer/create.js";
 import { renderActivity } from "@/remote/activitypub/renderer/index.js";
-import renderFollow from "@/remote/activitypub/renderer/follow.js";
 import { apLogger } from "@/remote/activitypub/logger.js";
 import { IsNull, Not } from "typeorm";
 
@@ -112,7 +112,7 @@ export default class Resolver {
 		}
 
 		if (!this.user) {
-			this.user = await getInstanceActor();
+			this.user = (await getInstanceActor()) as ILocalUser;
 		}
 
 		apLogger.info(
@@ -137,15 +137,18 @@ export default class Resolver {
 			throw new Error("Object has no ID");
 		}
 
-		if (finalUrl === object.id) return object;
+		const finalUrl_ = new URL(finalUrl);
+		const objectId_ = new URL(object.id);
 
-		if (new URL(finalUrl).host !== new URL(object.id).host) {
+		if (finalUrl_.href === objectId_.href) return object;
+
+		if (finalUrl_.host !== objectId_.host) {
 			throw new Error("Object ID host doesn't match final url host");
 		}
 
 		const finalRes = await apGet(object.id, this.user);
 
-		if (finalRes.finalUrl !== finalRes.content.id)
+		if (new URL(finalRes.finalUrl).href !== new URL(finalRes.content.id).href)
 			throw new Error(
 				"Object ID still doesn't match final URL after second fetch attempt",
 			);
@@ -158,7 +161,7 @@ export default class Resolver {
 		if (!parsed.local) throw new Error("resolveLocal: not local");
 
 		switch (parsed.type) {
-			case "notes":
+			case "notes": {
 				const note = await Notes.findOneByOrFail({ id: parsed.id });
 				if (parsed.rest === "activity") {
 					// this refers to the create activity and not the note itself
@@ -166,20 +169,24 @@ export default class Resolver {
 				} else {
 					return renderNote(note);
 				}
-			case "users":
+			}
+			case "users": {
 				const user = await Users.findOneByOrFail({ id: parsed.id });
 				return await renderPerson(user as ILocalUser);
-			case "questions":
+			}
+			case "questions": {
 				// Polls are indexed by the note they are attached to.
 				const [pollNote, poll] = await Promise.all([
 					Notes.findOneByOrFail({ id: parsed.id }),
 					Polls.findOneByOrFail({ noteId: parsed.id }),
 				]);
 				return await renderQuestion({ id: pollNote.userId }, pollNote, poll);
-			case "likes":
+			}
+			case "likes": {
 				const reaction = await NoteReactions.findOneByOrFail({ id: parsed.id });
-				return renderActivity(renderLike(reaction, { uri: null }));
-			case "follows":
+				return renderActivity(await renderLike(reaction));
+			}
+			case "follows": {
 				// if rest is a <followee id>
 				if (parsed.rest != null && /^\w+$/.test(parsed.rest)) {
 					const [follower, followee] = await Promise.all(
@@ -207,6 +214,7 @@ export default class Resolver {
 					throw new Error("resolveLocal: invalid follow URI");
 				}
 				return renderActivity(renderFollow(follower, followee, url));
+			}
 			default:
 				throw new Error(`resolveLocal: type ${parsed.type} unhandled`);
 		}

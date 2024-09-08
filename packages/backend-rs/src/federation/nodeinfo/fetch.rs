@@ -3,17 +3,18 @@
 //! ref: <https://nodeinfo.diaspora.software/protocol.html>
 
 use crate::{federation::nodeinfo::schema::*, util::http_client};
+use futures_util::io::AsyncReadExt;
 use isahc::AsyncReadResponseExt;
 use serde::Deserialize;
 
 /// Errors that can occur while fetching NodeInfo from a remote server
-#[derive(thiserror::Error, Debug)]
+#[error_doc::errors]
 pub enum Error {
     #[error("failed to acquire an HTTP client")]
     HttpClient(#[from] http_client::Error),
     #[error("HTTP request failed")]
     Http(#[from] isahc::Error),
-    #[doc = "bad HTTP status"]
+    #[doc = "Bad HTTP status"]
     #[error("bad HTTP status ({0})")]
     BadStatus(String),
     #[error("failed to parse HTTP response body as text")]
@@ -41,7 +42,7 @@ pub struct NodeinfoLink {
 async fn fetch_nodeinfo_links(host: &str) -> Result<NodeinfoLinks, Error> {
     let client = http_client::client()?;
     let wellknown_url = format!("https://{}/.well-known/nodeinfo", host);
-    let mut wellknown_response = client.get_async(&wellknown_url).await?;
+    let wellknown_response = client.get_async(&wellknown_url).await?;
 
     if !wellknown_response.status().is_success() {
         tracing::debug!("{:#?}", wellknown_response.body());
@@ -52,7 +53,12 @@ async fn fetch_nodeinfo_links(host: &str) -> Result<NodeinfoLinks, Error> {
         )));
     }
 
-    Ok(serde_json::from_str(&wellknown_response.text().await?)?)
+    // Read up to 1 MiB of the response body
+    let text = wellknown_response
+        .map(|body| body.take(1024 * 1024))
+        .text()
+        .await?;
+    Ok(serde_json::from_str(&text)?)
 }
 
 /// Check if any of the following relations is present in the given [NodeinfoLinks].
@@ -109,12 +115,12 @@ mod unit_test {
         let links_1 = NodeinfoLinks {
             links: vec![
                 NodeinfoLink {
-                    rel: "https://example.com/incorrect/schema/2.0".to_string(),
-                    href: "https://example.com/dummy".to_string(),
+                    rel: "https://example.com/incorrect/schema/2.0".to_owned(),
+                    href: "https://example.com/dummy".to_owned(),
                 },
                 NodeinfoLink {
-                    rel: "http://nodeinfo.diaspora.software/ns/schema/2.0".to_string(),
-                    href: "https://example.com/real".to_string(),
+                    rel: "http://nodeinfo.diaspora.software/ns/schema/2.0".to_owned(),
+                    href: "https://example.com/real".to_owned(),
                 },
             ],
         };
@@ -126,12 +132,12 @@ mod unit_test {
         let links_2 = NodeinfoLinks {
             links: vec![
                 NodeinfoLink {
-                    rel: "https://example.com/incorrect/schema/2.0".to_string(),
-                    href: "https://example.com/dummy".to_string(),
+                    rel: "https://example.com/incorrect/schema/2.0".to_owned(),
+                    href: "https://example.com/dummy".to_owned(),
                 },
                 NodeinfoLink {
-                    rel: "http://nodeinfo.diaspora.software/ns/schema/2.1".to_string(),
-                    href: "https://example.com/real".to_string(),
+                    rel: "http://nodeinfo.diaspora.software/ns/schema/2.1".to_owned(),
+                    href: "https://example.com/real".to_owned(),
                 },
             ],
         };
@@ -143,12 +149,12 @@ mod unit_test {
         let links_3 = NodeinfoLinks {
             links: vec![
                 NodeinfoLink {
-                    rel: "https://example.com/incorrect/schema/2.0".to_string(),
-                    href: "https://example.com/dummy/2.0".to_string(),
+                    rel: "https://example.com/incorrect/schema/2.0".to_owned(),
+                    href: "https://example.com/dummy/2.0".to_owned(),
                 },
                 NodeinfoLink {
-                    rel: "https://example.com/incorrect/schema/2.1".to_string(),
-                    href: "https://example.com/dummy/2.1".to_string(),
+                    rel: "https://example.com/incorrect/schema/2.1".to_owned(),
+                    href: "https://example.com/dummy/2.1".to_owned(),
                 },
             ],
         };

@@ -1,23 +1,19 @@
 //! NodeInfo generator
 
 use crate::{
+    cache::Cache,
     config::{local_server_info, CONFIG},
     database::db_conn,
     federation::nodeinfo::schema::*,
     misc,
     model::entity::{note, user},
 };
+use chrono::Duration;
 use sea_orm::prelude::*;
 use serde_json::json;
-use std::{collections::HashMap, sync::Mutex};
+use std::collections::HashMap;
 
-static CACHE: Mutex<Option<Nodeinfo21>> = Mutex::new(None);
-
-fn set_cache(nodeinfo: &Nodeinfo21) {
-    let _ = CACHE
-        .lock()
-        .map(|mut cache| *cache = Some(nodeinfo.to_owned()));
-}
+static NODEINFO_CACHE: Cache<Nodeinfo21> = Cache::new_with_ttl(Duration::hours(1));
 
 /// Fetches the number of total/active local users and local posts.
 ///
@@ -68,45 +64,45 @@ async fn generate_nodeinfo_2_1() -> Result<Nodeinfo21, DbErr> {
     let meta = local_server_info().await?;
     let mut metadata = HashMap::from([
         (
-            "nodeName".to_string(),
+            "nodeName".to_owned(),
             json!(meta.name.unwrap_or_else(|| CONFIG.host.clone())),
         ),
-        ("nodeDescription".to_string(), json!(meta.description)),
-        ("repositoryUrl".to_string(), json!(meta.repository_url)),
+        ("nodeDescription".to_owned(), json!(meta.description)),
+        ("repositoryUrl".to_owned(), json!(meta.repository_url)),
         (
-            "enableLocalTimeline".to_string(),
+            "enableLocalTimeline".to_owned(),
             json!(!meta.disable_local_timeline),
         ),
         (
-            "enableRecommendedTimeline".to_string(),
+            "enableRecommendedTimeline".to_owned(),
             json!(!meta.disable_recommended_timeline),
         ),
         (
-            "enableGlobalTimeline".to_string(),
+            "enableGlobalTimeline".to_owned(),
             json!(!meta.disable_global_timeline),
         ),
         (
-            "enableGuestTimeline".to_string(),
+            "enableGuestTimeline".to_owned(),
             json!(meta.enable_guest_timeline),
         ),
         (
-            "maintainer".to_string(),
+            "maintainer".to_owned(),
             json!({"name":meta.maintainer_name,"email":meta.maintainer_email}),
         ),
-        ("proxyAccountName".to_string(), json!(meta.proxy_account_id)),
+        ("proxyAccountName".to_owned(), json!(meta.proxy_account_id)),
         (
-            "themeColor".to_string(),
-            json!(meta.theme_color.unwrap_or_else(|| "#31748f".to_string())),
+            "themeColor".to_owned(),
+            json!(meta.theme_color.unwrap_or_else(|| "#31748f".to_owned())),
         ),
     ]);
     metadata.shrink_to_fit();
 
     Ok(Nodeinfo21 {
         software: Software21 {
-            name: "firefish".to_string(),
+            name: "firefish".to_owned(),
             version: CONFIG.version.clone(),
             repository: Some(meta.repository_url),
-            homepage: Some("https://firefish.dev/firefish/firefish".to_string()),
+            homepage: Some("https://firefish.dev/firefish/firefish".to_owned()),
         },
         protocols: vec![Protocol::Activitypub],
         services: Services {
@@ -127,24 +123,18 @@ async fn generate_nodeinfo_2_1() -> Result<Nodeinfo21, DbErr> {
     })
 }
 
-async fn nodeinfo_2_1_impl(use_cache: bool) -> Result<Nodeinfo21, DbErr> {
-    if use_cache {
-        if let Some(nodeinfo) = CACHE.lock().ok().and_then(|cache| cache.to_owned()) {
-            return Ok(nodeinfo);
-        }
+/// Returns NodeInfo (version 2.1) of the local server.
+pub async fn nodeinfo_2_1() -> Result<Nodeinfo21, DbErr> {
+    if let Some(nodeinfo) = NODEINFO_CACHE.get() {
+        return Ok(nodeinfo);
     }
 
     let nodeinfo = generate_nodeinfo_2_1().await?;
 
     tracing::info!("updating cache");
-    set_cache(&nodeinfo);
+    NODEINFO_CACHE.set(nodeinfo.clone());
 
     Ok(nodeinfo)
-}
-
-/// Returns NodeInfo (version 2.1) of the local server.
-pub async fn nodeinfo_2_1() -> Result<Nodeinfo21, DbErr> {
-    nodeinfo_2_1_impl(true).await
 }
 
 /// Returns NodeInfo (version 2.0) of the local server.
@@ -152,10 +142,10 @@ pub async fn nodeinfo_2_0() -> Result<Nodeinfo20, DbErr> {
     Ok(nodeinfo_2_1().await?.into())
 }
 
-#[cfg(feature = "napi")]
-#[derive(thiserror::Error, Debug)]
+#[macros::for_ts]
+#[error_doc::errors]
 pub enum Error {
-    #[doc = "database error"]
+    #[doc = "Database error"]
     #[error(transparent)]
     Db(#[from] DbErr),
     #[error("failed to serialize nodeinfo into JSON")]
@@ -170,10 +160,4 @@ pub async fn nodeinfo_2_1_as_json() -> Result<serde_json::Value, Error> {
 #[macros::ts_export(js_name = "nodeinfo_2_0")]
 pub async fn nodeinfo_2_0_as_json() -> Result<serde_json::Value, Error> {
     Ok(serde_json::to_value(nodeinfo_2_0().await?)?)
-}
-
-#[macros::ts_export(js_name = "updateNodeinfoCache")]
-pub async fn update_cache() -> Result<(), DbErr> {
-    nodeinfo_2_1_impl(false).await?;
-    Ok(())
 }

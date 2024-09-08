@@ -34,7 +34,7 @@ mod unit_test {
         #[error("unexpected string '{0}'")]
         struct InnerError2(String);
 
-        #[derive(thiserror::Error, Debug)]
+        #[error_doc::errors]
         enum ErrorVariants {
             #[error("error 1 occured")]
             Error1(#[from] InnerError1),
@@ -46,7 +46,7 @@ mod unit_test {
             Err(InnerError1)
         }
         fn causes_inner_error_2() -> Result<(), InnerError2> {
-            Err(InnerError2("foo".to_string()))
+            Err(InnerError2("foo".to_owned()))
         }
 
         fn causes_error_1() -> Result<(), ErrorVariants> {

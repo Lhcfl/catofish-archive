@@ -2,11 +2,27 @@
 
 You can skip intermediate versions when upgrading from an old version, but please read the notices and follow the instructions for each intermediate version before [upgrading](https://firefish.dev/firefish/firefish/-/blob/main/docs/upgrade.md).
 
-## Upcoming breaking change (unreleased)
+## v20240905
 
-Please take a look at #10947.
+:warning: **Firefish is in maintenance mode.** [(announcement)](https://info.firefish.dev/notes/9xsukr38m3komd63)
 
-## Unreleased
+## v20240809
+
+### For systemd/pm2 users
+
+Required Node.js version has been bumped from v18.19.0 to v18.20.0.
+
+As written in the [v20240710 note](https://firefish.dev/firefish/firefish/-/blob/7660050d9938a5a92293bb8acc361a0ef0715912/docs/notice-for-admins.md#v20240710), it is highly recommended that you use an even newer version since v18.20.0 has known vulnerabilities.
+
+## v20240725
+
+### For LibreTranslate self-hosters
+
+Previously, neither the DeepL API nor the LibreTranslate API provided traditional Chinese translations, so we used to provide traditional Chinese post translations using manual conversion from simplified Chinese translations.
+
+However, now that LibreTranslate API supports traditional Chinese translations, we have removed the manual conversion process for LibreTranslate. So, if you are hosting your LibreTranslate instance, please ensure your LibreTranslate version is new enough to support traditional Chinese.
+
+## v20240714
 
 ### For systemd/pm2 users
 

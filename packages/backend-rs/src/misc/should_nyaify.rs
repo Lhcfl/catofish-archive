@@ -1,19 +1,18 @@
 //! Determine whether to enable the cat language conversion
 
-use crate::{
-    database::{cache, db_conn},
-    model::entity::user,
-};
-use sea_orm::{DbErr, EntityTrait, QuerySelect, SelectColumns};
+use crate::{cache, database::db_conn, model::entity::user};
+use chrono::Duration;
+use sea_orm::{DbErr, EntityTrait, QuerySelect};
 
-#[derive(thiserror::Error, Debug)]
+#[error_doc::errors]
 pub enum Error {
-    #[doc = "database error"]
+    #[doc = "Database error"]
     #[error(transparent)]
     Db(#[from] DbErr),
-    #[doc = "cache error"]
+    #[doc = "Cache error"]
     #[error(transparent)]
-    Cache(#[from] cache::Error),
+    Cache(#[from] cache::redis::Error),
+    #[doc = "User not found"]
     #[error("user {0} not found")]
     NotFound(String),
 }
@@ -27,7 +26,7 @@ pub async fn should_nyaify(reader_user_id: &str) -> Result<bool, Error> {
 
     let fetched_value = user::Entity::find_by_id(reader_user_id)
         .select_only()
-        .select_column(user::Column::ReadCatLanguage)
+        .column(user::Column::ReadCatLanguage)
         .into_tuple::<bool>()
         .one(db_conn().await?)
         .await?
@@ -37,7 +36,7 @@ pub async fn should_nyaify(reader_user_id: &str) -> Result<bool, Error> {
         cache::Category::CatLang,
         reader_user_id,
         &fetched_value,
-        10 * 60,
+        Duration::minutes(10),
     )
     .await?;
 

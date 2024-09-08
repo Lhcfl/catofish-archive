@@ -10,7 +10,7 @@
 			},
 		]"
 	>
-		<img class="icon" :src="getInstanceIcon(instance)" alt="" />
+		<img class="icon" :src="getInstanceIcon(instance)" @error="getInstanceIconErrorEvent($event)" alt="" />
 		<div class="body">
 			<span class="host">{{ instance.name ?? instance.host }}</span>
 			<span class="sub _monospace"
@@ -37,6 +37,10 @@ function getInstanceIcon(instance: entities.Instance): string {
 		"/client-assets/dummy.png"
 	);
 }
+
+function getInstanceIconErrorEvent($event) {
+	$event.target.src = "/client-assets/dummy.png";
+}
 </script>
 
 <style lang="scss" module>
@@ -52,11 +56,11 @@ function getInstanceIcon(instance: entities.Instance): string {
 
 	> :global(.icon) {
 		display: block;
-		width: ($bodyTitleHieght + $bodyInfoHieght);
-		height: ($bodyTitleHieght + $bodyInfoHieght);
+		inline-size: ($bodyTitleHieght + $bodyInfoHieght);
+		block-size: ($bodyTitleHieght + $bodyInfoHieght);
 		object-fit: cover;
 		border-radius: 4px;
-		margin-right: 10px;
+		margin-inline-end: 10px;
 	}
 
 	> :global(.body) {
@@ -64,11 +68,11 @@ function getInstanceIcon(instance: entities.Instance): string {
 		overflow: hidden;
 		font-size: 0.9em;
 		color: var(--fg);
-		padding-right: 8px;
+		padding-inline-end: 8px;
 
 		> :global(.host) {
 			display: block;
-			width: 100%;
+			inline-size: 100%;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
@@ -77,7 +81,7 @@ function getInstanceIcon(instance: entities.Instance): string {
 
 		> :global(.sub) {
 			display: block;
-			width: 100%;
+			inline-size: 100%;
 			font-size: 80%;
 			opacity: 0.7;
 			line-height: $bodyInfoHieght;

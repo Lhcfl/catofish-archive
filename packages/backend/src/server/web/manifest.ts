@@ -77,20 +77,11 @@ const manifest = {
 };
 
 export const manifestHandler = async (ctx: Koa.Context) => {
-	const instance = await fetchMeta();
+	const instanceMeta = await fetchMeta();
 
-	manifest.short_name = instance.name || "Firefish";
-	manifest.name = instance.name || "Firefish";
-	if (instance.themeColor) manifest.theme_color = instance.themeColor;
-	if (instance.iconUrl) {
-		manifest.icons = [
-			{
-				src: instance.iconUrl,
-				sizes: "48x48 72x72 96x96 128x128 192x192 256x256",
-				purpose: "any",
-			},
-		] as never;
-	}
+	manifest.short_name = instanceMeta.name || "Firefish";
+	manifest.name = instanceMeta.name || "Firefish";
+	if (instanceMeta.themeColor) manifest.theme_color = instanceMeta.themeColor;
 
 	ctx.set("Cache-Control", "max-age=300");
 	ctx.body = manifest;

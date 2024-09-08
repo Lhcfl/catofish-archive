@@ -27,9 +27,8 @@ import deleteFollowing from "@/services/following/delete.js";
 import cancelFollowRequest from "@/services/following/requests/cancel.js";
 import createBlocking from "@/services/blocking/create.js";
 import deleteBlocking from "@/services/blocking/delete.js";
-import { genId } from "backend-rs";
+import { genId, publishToUserStream, UserEvent } from "backend-rs";
 import type { Muting } from "@/models/entities/muting.js";
-import { publishUserEvent } from "@/services/stream.js";
 import { UserConverter } from "@/server/api/mastodon/converters/user.js";
 import acceptFollowRequest from "@/services/following/requests/accept.js";
 import { rejectFollowRequest } from "@/services/following/reject.js";
@@ -152,7 +151,7 @@ export class UserHelpers {
 				muteeId: target.id,
 			} as Muting);
 
-			publishUserEvent(localUser.id, "mute", target);
+			await publishToUserStream(localUser.id, UserEvent.Mute, target);
 
 			NoteWatchings.delete({
 				userId: localUser.id,
@@ -177,7 +176,7 @@ export class UserHelpers {
 				id: muting.id,
 			});
 
-			publishUserEvent(localUser.id, "unmute", target);
+			await publishToUserStream(localUser.id, UserEvent.Unmute, target);
 		}
 
 		return this.getUserRelationshipTo(target.id, localUser.id);
@@ -306,6 +305,7 @@ export class UserHelpers {
 	}
 
 	public static async getUserFromAcct(acct: string): Promise<User> {
+		if (acct.startsWith("@")) acct = acct.slice(1);
 		const split = acct.toLowerCase().split("@");
 		if (split.length > 2) throw new Error("Invalid acct");
 		return split[1] == null

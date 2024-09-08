@@ -51,7 +51,7 @@ addToList: "Afegeix a la llista"
 sendMessage: "Envia un missatge"
 copyUsername: "Copia el nom d'usuari"
 searchUser: "Cerca un usuari"
-reply: "Resposta"
+reply: "Respon"
 loadMore: "Carrega'n més"
 showMore: "Mostra'n més"
 youGotNewFollower: "t'ha seguit"
@@ -110,7 +110,7 @@ pinnedNote: "Publicació fixada"
 pinned: "Fixa al perfil"
 you: "Tu"
 clickToShow: "Fes clic per mostrar"
-sensitive: "NSFW"
+sensitive: "Sensible"
 add: "Afegeix"
 reaction: "Reacció"
 reactionSetting: "Reaccions per mostrar al selector de reaccions"
@@ -118,8 +118,8 @@ reactionSettingDescription2: "Arrossega per reordenar, fes clic per suprimir, pr
   \"+\" per afegir."
 rememberNoteVisibility: "Recorda la configuració de visibilitat de les publicacions"
 attachCancel: "Elimina el fitxer adjunt"
-markAsSensitive: "Marca com a NSFW"
-unmarkAsSensitive: "Desmarca com a NSFW"
+markAsSensitive: "Marca com a sensible"
+unmarkAsSensitive: "Desmarca com a sensible"
 enterFileName: "Introdueix un nom de fitxer"
 mute: "Silencia"
 unmute: "Deixar de silenciar"
@@ -129,7 +129,7 @@ suspend: "Suspèn"
 unsuspend: "Treu la suspensió"
 instances: "Servidors"
 remove: "Elimina"
-nsfw: "NSFW"
+nsfw: "Sensible"
 pinnedNotes: "Publicacions fixades"
 userList: "Llistes"
 smtpUser: "Nom d'usuari"
@@ -735,8 +735,8 @@ _notification:
   pollEnded: Es resultat de la enquesta ja està disponible
   emptyPushNotificationMessage: Les notificacions push s'han actualitzat
   youWereInvitedToGroup: "{userName} t'ha convidat a un grup"
-  reacted: Ha reaccionat a la teva publicació
-  renoted: Ha impulsat la teva publicació
+  reacted: han reaccionat a la teva publicació
+  renoted: Han impulsat la teva publicació
   voted: Ha votat a la teva enquesta
   andCountUsers: I {count} usuaris més {acted}
 _deck:
@@ -846,7 +846,7 @@ federating: Federant
 blocked: Bloquejat
 subscribing: Subscrivint
 publishing: Publicant
-notResponding: Sense resposta
+notResponding: Sense respon
 instanceUsers: Usuaris d'aquest servidor
 instanceFollowing: Seguint al servidor
 instanceFollowers: Seguidors del servidor
@@ -978,7 +978,7 @@ recipient: Destinatari(s)
 annotation: Comentaris
 blockedInstances: Servidors bloquejats
 blockedInstancesDescription: Llista les adreces dels servidors que vols bloquejar.
-  Els servidors de la llista no podrán comunicarse amb aquests servidors.
+  Els servidors de la llista no podrán comunicarse amb aquest servidor.
 hiddenTags: Etiquetes amagades
 hiddenTagsDescription: 'Enumereu les etiquetes (sense el #) que voleu ocultar de tendències
   i explorar. Les etiquetes ocultes encara es poden descobrir per altres mitjans.'
@@ -1250,8 +1250,8 @@ disablePlayer: Tancar el reproductor de vídeo
 fileIdOrUrl: ID o adreça URL del fitxer
 behavior: Comportament
 regenerateLoginTokenDescription: Regenera la clau que es fa servir de manera interna
-  durant l'inici de sessió. Normalment això no és necessari. Si la clau és torna a
-  generar, es tancarà la sessió a tots els dispositius.
+  durant l'inici de sessió. Usualment aquesta acció no és necessària. Si la clau és
+  torna a generar, es tancarà la sessió a tots els dispositius.
 setMultipleBySeparatingWithSpace: Separa diferents entrades amb espais.
 reportAbuseOf: Informa d'un abús de {name}
 sample: Exemple
@@ -1300,7 +1300,7 @@ no: No
 noCrawle: Rebutjar la indexació dels restrejadors
 driveUsage: Espai fet servir al Disk
 noCrawleDescription: Demanar als motors de cerca externs no indexar el teu contingut.
-alwaysMarkSensitive: Marcar per defecte com a NSFW
+alwaysMarkSensitive: Marcar per defecte com a sensible
 lockedAccountInfo: Si has configurat la visibilitat del compte per "Només seguidors"
   les teves publicacions no serien visibles per a ningú més, inclús si has d'aprovar
   els teus seguidors manualment.
@@ -1573,10 +1573,10 @@ sensitiveMediaDetection: Detecció de mitjans NSFW
 remoteOnly: Només remotes
 failedToUpload: S'ha produït un error en la càrrega
 cannotUploadBecauseInappropriate: Aquest fitxer no s'ha pogut carregar perquè s'han
-  detectat parts d'aquest com a potencialment NSFW.
+  detectat parts d'aquest com a potencialment sensibles.
 cannotUploadBecauseNoFreeSpace: La pujada ha fallat a causa de la manca d'espai al
   Disc.
-enableAutoSensitive: Marcatge automàtic NSFW
+enableAutoSensitive: Marca automàticament com a sensible
 moveTo: Mou aquest compte a un compte nou
 customKaTeXMacro: Macros KaTeX personalitzats
 _aboutFirefish:
@@ -1766,8 +1766,8 @@ defaultReaction: Reacció d'emoji predeterminades per a publicacions sortints i 
 enableCustomKaTeXMacro: Activa les macros KaTeX personalitzades
 noteId: ID de la publicació
 _nsfw:
-  respect: Amaga els mitjans NSFW
-  ignore: No amagueu els mitjans NSFW
+  respect: Amaga els mitjans sensibles
+  ignore: No amagueu els mitjans sensibles
   force: Amaga tots els mitjans
 inUse: Utilitzat
 ffVisibilityDescription: Et permet configurar qui pot veure a qui segueixes i qui
@@ -1934,6 +1934,12 @@ _permissions:
   "read:reactions": Consulta les teves reaccions
   "read:pages": Consulta la teva pàgina
   "read:page-likes": Veure les pàgines que t'agraden
+  push: Enviar notificacions emergents
+  follow: Seguir i deixar de seguir comptes
+  read: Llegir (llegir línies de temps, notificacions, reaccions, silenciats, informació
+    dels comptes, etc.)
+  write: Escriure (escriure publicacions, reaccionar a publicacions, silenciar usuaris,
+    editar informació dels comptes, etc.)
 _poll:
   noOnlyOneChoice: Calen almenys dues opcions
   canMultipleVote: Permet seleccionar diverses opcions
@@ -2228,7 +2234,7 @@ useCdnDescription: Carrega alguns dels recursos estàtics com ara Twemoji des de
 releaseToReload: Deixa anar per actualitzar
 reloading: Actualitzant
 enableTimelineStreaming: Actualitza les línies de temps automàticament
-enablePullToRefresh: Activa "Baixa per actualitzar"
+enablePullToRefresh: Activa "Baixa per recarregar"
 pullDownToReload: Baixa per actualitzar
 pullToRefreshThreshold: Distancia de baixada per actualitzar
 searchWords: Paraules / ID o adreça URL que vols cercar
@@ -2240,12 +2246,14 @@ searchWordsDescription: "Per cercar publicacions, escriu el terme a buscar. Sepa
   les paraules amb espais per fer condicions AND o escriules dins de cometes per fer
   una cerca OR.\nPer exemple, 'dia nit' trobarà publicacions que continguin tan 'dia'
   com 'nit', i 'dia OR nit' trobara publicacions que continguin tant 'dia' com 'nit'
-  (o ambdues).\nPots combinar condicions AND/OR per exemple '(dia OR nit) endormiscar'.\n
-  Si vols cercar per una seqüencia de paraules (per exemple una frase) has d'escriure-les
-  entre cometes dobles, per no fer una cerca amb condicionant AND: \"Avui he aprés\"\
-  \n \nSi vols anar a una pàgina d'usuari o publicació en concret, escriu la adreça
-  URL o la ID en aquest camp i fes clic al botó 'Ves a'. Fent clic a 'Cerca' trobarà
-  publicacions que, literalment , continguin la ID/adreça URL."
+  (o ambdues).\nPots filtrar certes paraules en els resultats de la cerca, com 'endormiscat
+  -matí -esmorzar'. Encara més, pots combinar aquestes condicions AND/OR/exclude d'aquesta
+  manera '(mati OR nit) endormiscat -esmorzar'.\n Si vols cercar per una seqüencia
+  de paraules (per exemple una frase) has d'escriure-les entre cometes dobles, per
+  no fer una cerca amb condicionant AND: \"Avui he aprés\"\n \nSi vols anar a una
+  pàgina d'usuari o publicació en concret, escriu la adreça URL o la ID en aquest
+  camp i fes clic al botó 'Ves a'. Fent clic a 'Cerca' trobarà publicacions que, literalment
+  , continguin la ID/adreça URL."
 searchPostsWithFiles: Només publicacions amb fitxers
 searchCwAndAlt: Inclou avisos de contingut i arxius amb descripcions
 searchUsers: Publicat per (opcional)
@@ -2257,7 +2265,7 @@ publishTimelinesDescription: Si està activat, les línies de temps Global i Loc
 noAltTextWarning: Alguns fitxers adjunts no tenen una descripció. T'has s oblidat
   d'escriure-les?
 showNoAltTextWarning: Mostra un avís si públiques un fitxer sense descripció
-toReply: Resposta
+toReply: Respondre
 toQuote: Citar
 toEdit: Edita
 searchUsersDescription: "Per buscar publicacions concretes d'un usuari/servidor, escriu
@@ -2283,8 +2291,8 @@ incorrectLanguageWarning: "Semblar ser que la teva publicació es troba en {dete
 markLocalFilesNsfwByDefault: Marcar tots els fitxers locals nous com a sensibles per
   defecte
 markLocalFilesNsfwByDefaultDescription: Independentment d'aquest ajust, els usuaris
-  poden treure l'etiqueta NSFW els mateixos. Els fitxers que ja existeixen no es veuen
-  afectats.
+  poden treure els mateixos l'etiqueta de sensible. Els fitxers que ja existeixen
+  no es veuen afectats.
 autocorrectNoteLanguage: Mostra un avís si l'idioma de la publicació no coincideix
   amb el resultat de l'idioma detectat automàticament
 noteEditHistory: Historial d'edicions
@@ -2324,3 +2332,11 @@ addAlt4MeTag: "Afegeix automàticament l'etiqueta #Alt4Me a les teves publicacio
   que tinguin un fitxer adjunt sense descripció"
 strongPassword: Bona contrasenya
 turnOffCatLanguage: Desactiva la conversió al llenguatge de gat
+announcement: Anunci
+_writingMode:
+  horizontalTB: Horitzontal, de d'alt a baix
+  verticalRL: Vertical, de dreta a esquerra, lateralment
+  verticalLRUpright: Vertical, esquerra andreta, cap amunt
+  verticalRLUpright: Vertical, de dreta i esquerra, cap amunt
+  verticalLR: Vertical, d'esquerra a dreta, lateralment
+writingMode: Mode d'escriptura

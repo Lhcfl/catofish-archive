@@ -7,7 +7,7 @@ import type { Packed } from "@/misc/schema.js";
 import type { Promiseable } from "@/prelude/await-all.js";
 import { awaitAll } from "@/prelude/await-all.js";
 import { populateEmojis } from "@/misc/populate-emojis.js";
-import { USER_ACTIVE_THRESHOLD, USER_ONLINE_THRESHOLD } from "backend-rs";
+import { USER_ACTIVE_THRESHOLD, USER_ONLINE_THRESHOLD } from "@/const.js";
 import { Cache } from "@/misc/cache.js";
 import { db } from "@/db/postgre.js";
 import { isActor, getApId } from "@/remote/activitypub/type.js";
@@ -471,6 +471,7 @@ export const UserRepository = db.getRepository(User).extend({
 						.fetch(
 							user.host,
 							() => Instances.findOneBy({ host: user.host! }),
+							false,
 							(v) => v != null,
 						)
 						.then((instance) =>

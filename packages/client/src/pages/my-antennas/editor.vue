@@ -247,8 +247,10 @@ function addInstance() {
 	}
 
 	> .actions {
-		padding: 24px 32px;
-		border-top: solid 0.5px var(--divider);
+		padding-block-start: 24px;
+		padding-block-end: 80px;
+		padding-inline: 32px;
+		border-block-start: solid 0.5px var(--divider);
 	}
 }
 </style>

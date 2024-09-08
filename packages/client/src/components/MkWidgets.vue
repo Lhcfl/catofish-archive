@@ -4,12 +4,12 @@
 			<header v-focus tabindex="-1">
 				<MkSelect
 					v-model="widgetAdderSelected"
-					style="margin-bottom: var(--margin)"
+					style="margin-block-end: var(--margin)"
 					class="mk-widget-select"
 				>
 					<template #label>{{ i18n.ts.selectWidget }}</template>
 					<option
-						v-for="widget in widgetDefs"
+						v-for="widget in sortedWidgets"
 						:key="widget"
 						:value="widget"
 					>
@@ -101,6 +101,12 @@ const emit = defineEmits<{
 	(ev: "exit"): void;
 }>();
 
+const sortedWidgets = computed(() =>
+	widgetDefs.sort((a, b) =>
+		i18n.t(`_widgets.${a}`).localeCompare(i18n.t(`_widgets.${b}`)),
+	),
+);
+
 const widgetRefs = {};
 const configWidget = (id: string) => {
 	widgetRefs[id].configure();
@@ -172,10 +178,11 @@ function onContextmenu(widget: Widget, ev: MouseEvent) {
 	flex-direction: column;
 	flex-grow: 1;
 	> header {
-		margin: 16px 0;
+		margin-block: 16px;
+		margin-inline: 0;
 
 		> * {
-			width: 100%;
+			inline-size: 100%;
 			padding: 4px;
 		}
 	}
@@ -183,10 +190,10 @@ function onContextmenu(widget: Widget, ev: MouseEvent) {
 	> .widget,
 	.customize-container {
 		contain: content;
-		margin-bottom: var(--margin);
+		margin-block-end: var(--margin);
 
 		&:first-of-type {
-			margin-top: 0;
+			margin-block-start: 0;
 		}
 	}
 
@@ -198,20 +205,20 @@ function onContextmenu(widget: Widget, ev: MouseEvent) {
 		> .remove {
 			position: absolute;
 			z-index: 10000;
-			top: 8px;
-			width: 32px;
-			height: 32px;
+			inset-block-start: 8px;
+			inline-size: 32px;
+			block-size: 32px;
 			color: #fff;
 			background: rgba(#000, 0.7);
 			border-radius: 4px;
 		}
 
 		> .config {
-			right: 8px + 8px + 32px;
+			inset-inline-end: 8px + 8px + 32px;
 		}
 
 		> .remove {
-			right: 8px;
+			inset-inline-end: 8px;
 		}
 
 		> .handle {

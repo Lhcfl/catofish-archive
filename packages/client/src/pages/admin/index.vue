@@ -47,6 +47,15 @@
 							>{{ i18n.ts.check }}</a
 						></MkInfo
 					>
+					<MkInfo warn class="info"
+						>Firefish is in maintenance mode.
+						<a
+							href="https://info.firefish.dev/notes/9xsukr38m3komd63"
+							target="_bank"
+							class="_link"
+							>Check announcement</a
+						></MkInfo
+					>
 
 					<MkSuperMenu :def="menuDef" :grid="narrow"></MkSuperMenu>
 				</div>
@@ -420,28 +429,30 @@ defineExpose({
 .hiyeyicy {
 	&.wide {
 		display: flex;
-		margin: 0 auto;
-		height: 100%;
+		margin-block: 0;
+		margin-inline: auto;
+		block-size: 100%;
 
 		> .nav {
-			width: 32%;
-			max-width: 280px;
+			inline-size: 32%;
+			max-inline-size: 280px;
 			box-sizing: border-box;
-			border-right: solid 0.5px var(--divider);
+			border-inline-end: solid 0.5px var(--divider);
 			overflow: auto;
-			height: 100%;
+			block-size: 100%;
 		}
 
 		> .main {
 			flex: 1;
-			min-width: 0;
+			min-inline-size: 0;
 		}
 	}
 
 	> .nav {
 		.lxpfedzu {
 			> .info {
-				margin: 16px 0;
+				margin-block: 16px;
+				margin-inline: 0;
 			}
 
 			> .banner {
@@ -450,7 +461,7 @@ defineExpose({
 				> .icon {
 					display: block;
 					margin: auto;
-					height: 42px;
+					block-size: 42px;
 				}
 			}
 		}

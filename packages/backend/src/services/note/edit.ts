@@ -1,8 +1,4 @@
 import * as mfm from "mfm-js";
-import {
-	publishNoteStream,
-	publishNoteUpdatesStream,
-} from "@/services/stream.js";
 import DeliverManager from "@/remote/activitypub/deliver-manager.js";
 import renderNote from "@/remote/activitypub/renderer/note.js";
 import { renderActivity } from "@/remote/activitypub/renderer/index.js";
@@ -21,7 +17,12 @@ import {
 import type { DriveFile } from "@/models/entities/drive-file.js";
 import { In } from "typeorm";
 import type { ILocalUser, IRemoteUser } from "@/models/entities/user.js";
-import { genId } from "backend-rs";
+import {
+	genId,
+	NoteEvent,
+	publishToNoteStream,
+	publishToNoteUpdatesStream,
+} from "backend-rs";
 import type { IPoll } from "@/models/entities/poll.js";
 import { deliverToRelays } from "../relay.js";
 import renderUpdate from "@/remote/activitypub/renderer/update.js";
@@ -190,11 +191,11 @@ export default async function (
 
 	if (publishing) {
 		// Publish update event for the updated note details
-		publishNoteStream(note.id, "updated", {
+		publishToNoteStream(note.id, NoteEvent.Update, {
 			updatedAt: update.updatedAt,
 		});
 
-		publishNoteUpdatesStream("updated", note);
+		publishToNoteUpdatesStream(note);
 
 		(async () => {
 			const noteActivity = await renderNote(note, false);

@@ -1,9 +1,11 @@
-import { publishMainStream } from "@/services/stream.js";
 import {
 	publishToChatStream,
 	publishToGroupChatStream,
 	publishToChatIndexStream,
+	renderRead,
 	sendPushNotification,
+	publishToMainStream,
+	Event,
 } from "backend-rs";
 import type { User, IRemoteUser } from "@/models/entities/user.js";
 import type { MessagingMessage } from "@/models/entities/messaging-message.js";
@@ -12,10 +14,10 @@ import { In } from "typeorm";
 import { IdentifiableError } from "@/misc/identifiable-error.js";
 import type { UserGroup } from "@/models/entities/user-group.js";
 import { toArray } from "@/prelude/array.js";
-import { renderReadActivity } from "@/remote/activitypub/renderer/read.js";
 import { renderActivity } from "@/remote/activitypub/renderer/index.js";
 import { deliver } from "@/queue/index.js";
 import orderedCollection from "@/remote/activitypub/renderer/ordered-collection.js";
+import { unsafeCast } from "@/prelude/unsafe-cast.js";
 
 /**
  * Mark messages as read
@@ -61,7 +63,7 @@ export async function readUserMessagingMessage(
 
 	if (!(await Users.getHasUnreadMessagingMessage(userId))) {
 		// 全ての(いままで未読だった)自分宛てのメッセージを(これで)読みましたよというイベントを発行
-		publishMainStream(userId, "readAllMessagingMessages");
+		await publishToMainStream(userId, Event.ReadAllChats, {});
 		await sendPushNotification(userId, "readAllChats", {});
 	} else {
 		// そのユーザーとのメッセージで未読がなければイベント発行
@@ -135,7 +137,7 @@ export async function readGroupMessagingMessage(
 
 	if (!(await Users.getHasUnreadMessagingMessage(userId))) {
 		// 全ての(いままで未読だった)自分宛てのメッセージを(これで)読みましたよというイベントを発行
-		publishMainStream(userId, "readAllMessagingMessages");
+		await publishToMainStream(userId, Event.ReadAllChats, {});
 		await sendPushNotification(userId, "readAllChats", {});
 	} else {
 		// そのグループにおいて未読がなければイベント発行
@@ -163,7 +165,9 @@ export async function deliverReadActivity(
 	messages: MessagingMessage | MessagingMessage[],
 ) {
 	messages = toArray(messages).filter((x) => x.uri);
-	const contents = messages.map((x) => renderReadActivity(user, x));
+	const contents = messages.map((x) =>
+		unsafeCast<Record<string, unknown>>(renderRead(user.id, x.uri)),
+	);
 
 	if (contents.length > 1) {
 		const collection = orderedCollection(
@@ -173,10 +177,10 @@ export async function deliverReadActivity(
 			undefined,
 			contents,
 		);
-		deliver(user, renderActivity(collection), recipient.inbox);
+		deliver(user.id, renderActivity(collection), recipient.inbox);
 	} else {
 		for (const content of contents) {
-			deliver(user, renderActivity(content), recipient.inbox);
+			deliver(user.id, renderActivity(content), recipient.inbox);
 		}
 	}
 }

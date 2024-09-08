@@ -2,12 +2,52 @@
 
 Critical security updates are indicated by the :warning: icon.
 
+This changelog is not an exhaustive list. Code refactorings, minor bug fixes, documentation/dependency updates, etc. are usually not listed here. If you want to see all changes, click on the version number and check the commit history.
+
 - Server administrators must check [notice-for-admins.md](https://firefish.dev/firefish/firefish/-/blob/main/docs/notice-for-admins.md) as well.
 - Third-party client/bot developers may want to check [api-change.md](https://firefish.dev/firefish/firefish/-/blob/main/docs/api-change.md) as well.
 
-## Unreleased
+## [v20240905](https://firefish.dev/firefish/firefish/-/merge_requests/11361/commits)
+
+- Add fallback images for url preview and instance ticker (!10723)
+- Fix bugs
+- Update documentation
+  - :warning: Firefish is in maintenance mode. [(announcement)](https://info.firefish.dev/notes/9xsukr38m3komd63)
+
+## [v20240818](https://firefish.dev/firefish/firefish/-/merge_requests/11293/commits)
+
+- Fix bugs
+
+## [v20240809](https://firefish.dev/firefish/firefish/-/merge_requests/11262/commits)
+
+- Add writing mode (right-to-left, vertical) support (!11222)
+- Fix bugs
+
+### Breaking change
+
+The random icon generator has been changed, so your icon will be changed if you haven't set your icon image and random icon generation is enabled on your server.
+
+## [v20240729](https://firefish.dev/firefish/firefish/-/merge_requests/11214/commits)
+
+- Fix bugs (including a medium severity security issue)
+	- We are very thankful to Laura Hausmann for kindly sharing the information about the security issue.
+
+## [v20240728](https://firefish.dev/firefish/firefish/-/merge_requests/11211/commits)
+
+- Improve `admin/emoji/add` API
+- Fix bugs
+
+## [v20240725](https://firefish.dev/firefish/firefish/-/merge_requests/11196/commits)
+
+- Add followers list export feature
+- Add description about excluding conditions (e.g., 'firefish -info.firefish.dev', '(sleepy OR eepy) -morning') in post search
+	- Technically this is not a new feature
+- Fix bugs
+
+## [v20240714](https://firefish.dev/firefish/firefish/-/merge_requests/11146/commits)
 
 - Mastodon API implementation was ported from Iceshrimp, with added Firefish extensions including push notifications, post languages, schedule post support, and more. (#10880)
+- Fix bugs
 
 ### Acknowledgement 
 

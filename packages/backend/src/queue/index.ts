@@ -155,13 +155,13 @@ webhookDeliverQueue
 		webhookLogger.warn(`stalled ${getJobInfo(job)} to=${job.data.to}`),
 	);
 
-export function deliver(user: ThinUser, content: unknown, to: string | null) {
+export function deliver(userId: string, content: unknown, to: string | null) {
 	if (content == null) return null;
 	if (to == null) return null;
 
 	const data = {
 		user: {
-			id: user.id,
+			id: userId,
 		},
 		content,
 		to,
@@ -244,6 +244,25 @@ export function createExportFollowingJob(
 ) {
 	return dbQueue.add(
 		"exportFollowing",
+		{
+			user: user,
+			excludeMuting,
+			excludeInactive,
+		},
+		{
+			removeOnComplete: true,
+			removeOnFail: true,
+		},
+	);
+}
+
+export function createExportFollowersJob(
+	user: ThinUser,
+	excludeMuting = false,
+	excludeInactive = false,
+) {
+	return dbQueue.add(
+		"exportFollowers",
 		{
 			user: user,
 			excludeMuting,

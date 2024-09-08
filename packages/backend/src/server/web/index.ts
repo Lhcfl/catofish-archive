@@ -16,13 +16,12 @@ import { KoaAdapter } from "@bull-board/koa";
 
 import { In, IsNull } from "typeorm";
 import {
-	MINUTE,
-	DAY,
 	getNoteSummary,
 	stringToAcct,
 	fetchMeta,
 	metaToPugArgs,
 } from "backend-rs";
+import { MINUTE, DAY } from "@/const.js";
 import { config } from "@/config.js";
 import {
 	Users,
@@ -334,8 +333,8 @@ const getFeed = async (
 	noRenotes: string,
 	noReplies: string,
 ) => {
-	const meta = await fetchMeta();
-	if (meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.privateMode) {
 		return;
 	}
 	const { username, host } = stringToAcct(acct);
@@ -482,7 +481,7 @@ const userPage: Router.Middleware = async (ctx, next) => {
 	}
 
 	const profile = await UserProfiles.findOneByOrFail({ userId: user.id });
-	const meta = await fetchMeta();
+	const instanceMeta = await fetchMeta();
 	const me = profile.fields
 		? profile.fields
 				.filter((filed) => filed.value?.match(/^https?:/))
@@ -490,7 +489,7 @@ const userPage: Router.Middleware = async (ctx, next) => {
 		: [];
 
 	const userDetail = {
-		...metaToPugArgs(meta),
+		...metaToPugArgs(instanceMeta),
 		user,
 		profile,
 		me,
@@ -531,9 +530,9 @@ router.get("/notes/:note", async (ctx, next) => {
 			const profile = await UserProfiles.findOneByOrFail({
 				userId: note.userId,
 			});
-			const meta = await fetchMeta();
+			const instanceMeta = await fetchMeta();
 			await ctx.render("note", {
-				...metaToPugArgs(meta),
+				...metaToPugArgs(instanceMeta),
 				note: packedNote,
 				profile,
 				avatarUrl: await Users.getAvatarUrl(
@@ -565,9 +564,9 @@ router.get("/posts/:note", async (ctx, next) => {
 	if (note != null) {
 		const packedNote = await Notes.pack(note);
 		const profile = await UserProfiles.findOneByOrFail({ userId: note.userId });
-		const meta = await fetchMeta();
+		const instanceMeta = await fetchMeta();
 		await ctx.render("note", {
-			...metaToPugArgs(meta),
+			...metaToPugArgs(instanceMeta),
 			note: packedNote,
 			profile,
 			avatarUrl: await Users.getAvatarUrl(
@@ -603,9 +602,9 @@ router.get("/@:user/pages/:page", async (ctx, next) => {
 	if (page) {
 		const _page = await Pages.pack(page);
 		const profile = await UserProfiles.findOneByOrFail({ userId: page.userId });
-		const meta = await fetchMeta();
+		const instanceMeta = await fetchMeta();
 		await ctx.render("page", {
-			...metaToPugArgs(meta),
+			...metaToPugArgs(instanceMeta),
 			page: _page,
 			profile,
 			avatarUrl: await Users.getAvatarUrl(
@@ -635,9 +634,9 @@ router.get("/clips/:clip", async (ctx, next) => {
 	if (clip) {
 		const _clip = await Clips.pack(clip);
 		const profile = await UserProfiles.findOneByOrFail({ userId: clip.userId });
-		const meta = await fetchMeta();
+		const instanceMeta = await fetchMeta();
 		await ctx.render("clip", {
-			...metaToPugArgs(meta),
+			...metaToPugArgs(instanceMeta),
 			clip: _clip,
 			profile,
 			avatarUrl: await Users.getAvatarUrl(
@@ -660,9 +659,9 @@ router.get("/gallery/:post", async (ctx, next) => {
 	if (post) {
 		const _post = await GalleryPosts.pack(post);
 		const profile = await UserProfiles.findOneByOrFail({ userId: post.userId });
-		const meta = await fetchMeta();
+		const instanceMeta = await fetchMeta();
 		await ctx.render("gallery-post", {
-			...metaToPugArgs(meta),
+			...metaToPugArgs(instanceMeta),
 			post: _post,
 			profile,
 			avatarUrl: await Users.getAvatarUrl(
@@ -686,9 +685,9 @@ router.get("/channels/:channel", async (ctx, next) => {
 
 	if (channel) {
 		const _channel = await Channels.pack(channel);
-		const meta = await fetchMeta();
+		const instanceMeta = await fetchMeta();
 		await ctx.render("channel", {
-			...metaToPugArgs(meta),
+			...metaToPugArgs(instanceMeta),
 			channel: _channel,
 		});
 
@@ -739,10 +738,10 @@ router.get("/api/v1/streaming", async (ctx) => {
 
 // Render base html for all requests
 router.get("(.*)", async (ctx) => {
-	const meta = await fetchMeta();
+	const instanceMeta = await fetchMeta();
 
 	await ctx.render("base", {
-		...metaToPugArgs(meta),
+		...metaToPugArgs(instanceMeta),
 	});
 	ctx.set("Cache-Control", "public, max-age=3");
 });

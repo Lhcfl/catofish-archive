@@ -40,7 +40,7 @@ import {
 	getStubMastoContext,
 	type MastoContext,
 } from "@/server/api/mastodon/index.js";
-import { translate } from "@/misc/translate.js";
+import { translate } from "backend-rs";
 import { createScheduledNoteJob } from "@/queue/index.js";
 
 export class NoteHelpers {
@@ -727,17 +727,17 @@ export class NoteHelpers {
 		ctx: MastoContext,
 	): Promise<MastodonEntity.StatusTranslation> {
 		const user = ctx.user as ILocalUser;
-		const instance = await fetchMeta();
-		const provider = instance.libreTranslateApiUrl
+		const instanceMeta = await fetchMeta();
+		const provider = instanceMeta.libreTranslateApiUrl
 			? "LibreTranslate"
-			: instance.deeplAuthKey
+			: instanceMeta.deeplAuthKey
 				? "DeepL"
 				: undefined;
 		if (provider === undefined)
 			throw new Error("No translator is set up on this server.");
 
 		// DeepL API only allows "en-US" or "en-GB" for English ("en" won’t work)
-		if (instance.deeplAuthKey && targetLang === "en") {
+		if (instanceMeta.deeplAuthKey && targetLang === "en") {
 			targetLang = "en-US";
 		}
 

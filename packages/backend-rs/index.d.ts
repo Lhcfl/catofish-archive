@@ -48,6 +48,20 @@ export interface Acct {
 
 export declare function acctToString(acct: Acct): string
 
+export type Activity =  'Accept'|
+'Add'|
+'Emoji'|
+'Flag'|
+'Follow'|
+'Hashtag'|
+'Like'|
+'Mention'|
+'Image'|
+'Read'|
+'Reject'|
+'Remove'|
+'Tombstone';
+
 export interface Ad {
   id: string
   createdAt: DateTimeWithTimeZone
@@ -104,6 +118,63 @@ export type AntennaSrc =  'all'|
 'list'|
 'users';
 
+export interface ApAccept {
+  id: string
+  type: Activity
+  actor: string
+  object: ApFollow
+}
+
+export interface ApAdd {
+  type: Activity
+  actor: string
+  target: string
+  object: string
+}
+
+export interface ApEmoji {
+  id: string
+  type: Activity
+  name: string
+  updated: string
+  icon: Icon
+}
+
+export interface ApFlag {
+  type: Activity
+  actor: string
+  content: string
+  object: string
+}
+
+export interface ApFollow {
+  id: string
+  type: Activity
+  actor: string
+  object: string
+}
+
+export interface ApHashtag {
+  id: string
+  type: Activity
+  name: string
+}
+
+export interface ApLike {
+  id: string
+  type: Activity
+  actor: string
+  object: string
+  content: string
+  tag?: Array<ApEmoji>
+}
+
+export interface ApMention {
+  type: Activity
+  href: string
+  name: string
+}
+
 export interface App {
   id: string
   createdAt: DateTimeWithTimeZone
@@ -113,6 +184,31 @@ export interface App {
   description: string
   permission: Array<string>
   callbackUrl: string | null
+}
+
+export interface ApRead {
+  type: Activity
+  actor: string
+  object: string
+}
+
+export interface ApReject {
+  id: string
+  type: Activity
+  actor: string
+  object: ApFollow
+}
+
+export interface ApRemove {
+  type: Activity
+  actor: string
+  target: string
+  object: string
+}
+
+export interface ApTombstone {
+  id: string
+  type: Activity
 }
 
 export interface AttestationChallenge {
@@ -217,7 +313,7 @@ export interface Config {
   proxySmtp?: string
   proxyBypassHosts?: Array<string>
   allowedPrivateNetworks?: Array<string>
-  maxFileSize?: number
+  maxFileSize: number
   accessLog?: string
   clusterLimits: WorkerConfig
   cuid?: IdConfig
@@ -269,8 +365,6 @@ export interface Cpu {
 export declare function cpuInfo(): Cpu
 
 export declare function cpuUsage(): number
-
-export const DAY: number
 
 export interface DbConfig {
   host: string
@@ -371,23 +465,46 @@ export interface Emoji {
   height: number | null
 }
 
+export declare enum Event {
+  Notification = 0,
+  NewNotification = 1,
+  Mention = 2,
+  NewMention = 3,
+  Chat = 4,
+  NewChat = 5,
+  NewDm = 6,
+  Reply = 7,
+  Renote = 8,
+  Follow = 9,
+  Followed = 10,
+  Unfollow = 11,
+  NewFollowRequest = 12,
+  Page = 13,
+  ReadAllNotifications = 14,
+  ReadAllMentions = 15,
+  ReadNotifications = 16,
+  ReadAllDms = 17,
+  ReadAllChats = 18,
+  ReadAntenna = 19,
+  ReadAllAntennaPosts = 20,
+  NewAntennaPost = 21,
+  ReadAllAnnouncements = 22,
+  ReadAllChannelPosts = 23,
+  NewChannelPost = 24,
+  DriveFile = 25,
+  UrlUploadFinished = 26,
+  Me = 27,
+  RegenerateMyToken = 28,
+  Signin = 29,
+  Registry = 30
+}
+
 export declare function extractHost(uri: string): string
 
 export declare function fetchMeta(): Promise<Meta>
 
 /** Fetches and returns the NodeInfo (version 2.0) of a remote server. */
 export declare function fetchNodeinfo(host: string): Promise<Nodeinfo>
-
-/**
- * List of file types allowed to be viewed directly in the browser
- *
- * Anything not included here will be responded as application/octet-stream
- * SVG is not allowed because it generates XSS (TODO: fix this and later allow it to be viewed directly)
- * * <https://github.com/sindresorhus/file-type/blob/main/supported.js>
- * * <https://github.com/sindresorhus/file-type/blob/main/core.js>
- * * <https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Containers>
- */
-export const FILE_TYPE_BROWSERSAFE: string[]
 
 export interface Following {
   id: string
@@ -457,11 +574,17 @@ export declare function genId(): string
 /** Generate an ID using a specific datetime */
 export declare function genIdAt(date: Date): string
 
+export declare function genIdenticon(id: string): Promise<Buffer>
+
 export declare function getFullApAccount(username: string, host?: string | undefined | null): string
 
 export declare function getImageSizeFromUrl(url: string): Promise<ImageSize>
 
+export declare function getInstanceActor(): Promise<User>
+
 export declare function getNoteSummary(fileIds: Array<string>, text: string | undefined | null, cw: string | undefined | null, hasPoll: boolean): string
+
+export declare function getRelayActorId(): Promise<string>
 
 export declare function getTimestamp(id: string): number
 
@@ -488,7 +611,11 @@ export interface Hashtag {
   attachedRemoteUsersCount: number
 }
 
-export const HOUR: number
+export interface Icon {
+  type: Activity
+  mediaType: string
+  url: string
+}
 
 export interface IdConfig {
   length?: number
@@ -542,6 +669,21 @@ export interface Instance {
   faviconUrl: string | null
 }
 
+export declare enum InternalEvent {
+  Suspend = 0,
+  Silence = 1,
+  Moderator = 2,
+  Token = 3,
+  LocalUser = 4,
+  RemoteUser = 5,
+  WebhookCreated = 6,
+  WebhookUpdated = 7,
+  WebhookDeleted = 8,
+  AntennaCreated = 9,
+  AntennaUpdated = 10,
+  AntennaDeleted = 11
+}
+
 /**
  * Checks if a server is allowlisted.
  * Returns `Ok(true)` if private mode is disabled.
@@ -550,7 +692,7 @@ export interface Instance {
  * `host` - punycoded instance host
  *
  * # Example
- * ```no_run
+ * ```ignore
  * # use backend_rs::misc::check_server_block::is_allowed_server;
  * # async fn f() -> Result<(), Box<dyn std::error::Error>> {
  * assert_eq!(true, is_allowed_server("allowed.com").await?);
@@ -570,7 +712,7 @@ export declare function isAllowedServer(host: string): Promise<boolean>
  * `host` - punycoded instance host
  *
  * # Example
- * ```no_run
+ * ```ignore
  * # use backend_rs::misc::check_server_block::is_blocked_server;
  * # async fn f() -> Result<(), Box<dyn std::error::Error>> {
  * assert_eq!(true, is_blocked_server("blocked.com").await?);
@@ -601,7 +743,7 @@ export declare function isSelfHost(host?: string | undefined | null): boolean
  * `host` - punycoded instance host
  *
  * # Example
- * ```no_run
+ * ```ignore
  * # use backend_rs::misc::check_server_block::is_silenced_server;
  * # async fn f() -> Result<(), Box<dyn std::error::Error>> {
  * assert_eq!(true, is_silenced_server("silenced.com").await?);
@@ -747,8 +889,6 @@ export interface Migrations {
   name: string
 }
 
-export const MINUTE: number
-
 export interface ModerationLog {
   id: string
   createdAt: DateTimeWithTimeZone
@@ -842,6 +982,15 @@ export interface NoteEdit {
   fileIds: Array<string>
   updatedAt: DateTimeWithTimeZone
   emojis: Array<string>
+}
+
+export declare enum NoteEvent {
+  Delete = 0,
+  React = 1,
+  Unreact = 2,
+  Reply = 3,
+  Update = 4,
+  Vote = 5
 }
 
 export interface NoteFavorite {
@@ -1125,9 +1274,19 @@ export declare function publishToDriveFolderStream(userId: string, kind: DriveFo
 
 export declare function publishToGroupChatStream(groupId: string, kind: ChatEvent, object: any): Promise<void>
 
+export declare function publishToInternalStream(kind: InternalEvent, object: any): Promise<void>
+
+export declare function publishToMainStream(userId: string, kind: Event, object: any): Promise<void>
+
 export declare function publishToModerationStream(moderatorId: string, report: AbuseUserReportLike): Promise<void>
 
 export declare function publishToNotesStream(note: Note): Promise<void>
+
+export declare function publishToNoteStream(noteId: string, kind: NoteEvent, object: any): Promise<void>
+
+export declare function publishToNoteUpdatesStream(note: Note): Promise<void>
+
+export declare function publishToUserStream(userId: string, kind: UserEvent, object: any): Promise<void>
 
 export interface PugArgs {
   img: string | null
@@ -1201,6 +1360,32 @@ export type RelayStatus =  'accepted'|
 /** Delete all entries in the [attestation_challenge] table created at more than 5 minutes ago */
 export declare function removeOldAttestationChallenges(): Promise<void>
 
+export declare function renderAccept(userId: string, followObject: ApFollow): ApAccept
+
+export declare function renderAdd(userId: string, noteId: string): ApAdd
+
+export declare function renderEmoji(emoji: Emoji): ApEmoji
+
+export declare function renderFlag(targetUserUri: string, comment: string): Promise<ApFlag>
+
+export declare function renderFollow(follower: UserLike, followee: UserLike, requestId?: string | undefined | null): ApFollow
+
+export declare function renderFollowRelay(relayId: string): Promise<ApFollow>
+
+export declare function renderHashtag(tagName: string): ApHashtag
+
+export declare function renderLike(reaction: Model): Promise<ApLike>
+
+export declare function renderMention(user: UserLike): ApMention
+
+export declare function renderRead(userId: string, messageUri: string): ApRead
+
+export declare function renderReject(userId: string, followObject: ApFollow): ApReject
+
+export declare function renderRemove(userId: string, noteId: string): ApRemove
+
+export declare function renderTombstone(noteId: string): ApTombstone
+
 export interface RenoteMuting {
   id: string
   createdAt: DateTimeWithTimeZone
@@ -1217,8 +1402,6 @@ export interface ReplyMuting {
 
 /** Returns `true` if `src` does not contain suspicious characters like `%`. */
 export declare function safeForSql(src: string): boolean
-
-export const SECOND: number
 
 export declare function sendPushNotification(receiverUserId: string, kind: PushNotificationKind, content: any): Promise<void>
 
@@ -1344,6 +1527,13 @@ export declare function toDbReaction(reaction?: string | undefined | null, host?
 
 export declare function toPuny(host: string): string
 
+export declare function translate(text: string, sourceLang: string | undefined | null, targetLang: string): Promise<Translation>
+
+export interface Translation {
+  sourceLang: string
+  text: string
+}
+
 export declare function unwatchNote(watcherId: string, noteId: string): Promise<void>
 
 export declare function updateAntennaCache(): Promise<void>
@@ -1351,8 +1541,6 @@ export declare function updateAntennaCache(): Promise<void>
 export declare function updateAntennasOnNewNote(note: Note, noteAuthor: Acct, noteMutedUsers: Array<string>): Promise<void>
 
 export declare function updateMetaCache(): Promise<void>
-
-export declare function updateNodeinfoCache(): Promise<void>
 
 /** Usage statistics for this server. */
 export interface Usage {
@@ -1408,14 +1596,21 @@ export interface User {
   readCatLanguage: boolean
 }
 
-export const USER_ACTIVE_THRESHOLD: number
-
-export const USER_ONLINE_THRESHOLD: number
-
 export type UserEmojiModPerm =  'add'|
 'full'|
 'mod'|
 'unauthorized';
+
+export declare enum UserEvent {
+  Disconnect = 0,
+  FollowChannel = 1,
+  UnfollowChannel = 2,
+  UpdateProfile = 3,
+  Mute = 4,
+  Unmute = 5,
+  Follow = 6,
+  Unfollow = 7
+}
 
 export interface UserGroup {
   id: string
@@ -1457,6 +1652,13 @@ export interface UserKeypair {
   userId: string
   publicKey: string
   privateKey: string
+}
+
+export interface UserLike {
+  id: string
+  username: string
+  host: string | null
+  uri: string | null
 }
 
 export interface UserList {

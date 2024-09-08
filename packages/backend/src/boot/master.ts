@@ -7,8 +7,6 @@ import {
 	greet,
 	removeOldAttestationChallenges,
 	showServerInfo,
-	updateMetaCache,
-	updateNodeinfoCache,
 	type Config,
 } from "backend-rs";
 import { config } from "@/config.js";
@@ -29,7 +27,6 @@ export async function masterMain() {
 		showEnvironment();
 		showNodejsVersion();
 		await connectDb();
-		await updateMetaCache();
 	} catch (e) {
 		bootLogger.error(
 			`Fatal error occurred during initialization:\n${inspect(e)}`,
@@ -51,10 +48,6 @@ export async function masterMain() {
 
 	import("../daemons/server-stats.js").then((x) => x.default());
 	import("../daemons/queue-stats.js").then((x) => x.default());
-	// Update meta cache every 5 minitues
-	setInterval(() => updateMetaCache(), 1000 * 60 * 5);
-	// Update nodeinfo cache every hour
-	setInterval(() => updateNodeinfoCache(), 1000 * 60 * 60);
 	// Remove old attestation challenges
 	setInterval(() => removeOldAttestationChallenges(), 1000 * 60 * 30);
 }
@@ -77,7 +70,7 @@ function showNodejsVersion(): void {
 
 	nodejsLogger.info(`Version ${process.version} detected.`);
 
-	const minVersion = "v18.19.0";
+	const minVersion = "v18.20.0";
 	if (semver.lt(process.version, minVersion)) {
 		nodejsLogger.error(`At least Node.js ${minVersion} required!`);
 		process.exit(1);

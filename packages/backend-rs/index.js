@@ -336,7 +336,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
     nativeBinding = require('./backend-rs.wasi.cjs')
   } catch (err) {
     if (process.env.NAPI_RS_FORCE_WASI) {
-      console.error(err)
+      loadErrors.push(err)
     }
   }
   if (!nativeBinding) {
@@ -344,7 +344,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
       nativeBinding = require('backend-rs-wasm32-wasi')
     } catch (err) {
       if (process.env.NAPI_RS_FORCE_WASI) {
-        console.error(err)
+        loadErrors.push(err)
       }
     }
   }
@@ -362,6 +362,7 @@ if (!nativeBinding) {
 }
 
 module.exports.acctToString = nativeBinding.acctToString
+module.exports.Activity = nativeBinding.Activity
 module.exports.AntennaSrc = nativeBinding.AntennaSrc
 module.exports.ChatEvent = nativeBinding.ChatEvent
 module.exports.ChatIndexEvent = nativeBinding.ChatIndexEvent
@@ -370,29 +371,31 @@ module.exports.countLocalUsers = nativeBinding.countLocalUsers
 module.exports.countReactions = nativeBinding.countReactions
 module.exports.cpuInfo = nativeBinding.cpuInfo
 module.exports.cpuUsage = nativeBinding.cpuUsage
-module.exports.DAY = nativeBinding.DAY
 module.exports.decodeReaction = nativeBinding.decodeReaction
 module.exports.DriveFileEvent = nativeBinding.DriveFileEvent
 module.exports.DriveFileUsageHint = nativeBinding.DriveFileUsageHint
 module.exports.DriveFolderEvent = nativeBinding.DriveFolderEvent
+module.exports.Event = nativeBinding.Event
 module.exports.extractHost = nativeBinding.extractHost
 module.exports.fetchMeta = nativeBinding.fetchMeta
 module.exports.fetchNodeinfo = nativeBinding.fetchNodeinfo
-module.exports.FILE_TYPE_BROWSERSAFE = nativeBinding.FILE_TYPE_BROWSERSAFE
 module.exports.formatMilliseconds = nativeBinding.formatMilliseconds
 module.exports.generateSecureRandomString = nativeBinding.generateSecureRandomString
 module.exports.generateUserToken = nativeBinding.generateUserToken
 module.exports.genId = nativeBinding.genId
 module.exports.genIdAt = nativeBinding.genIdAt
+module.exports.genIdenticon = nativeBinding.genIdenticon
 module.exports.getFullApAccount = nativeBinding.getFullApAccount
 module.exports.getImageSizeFromUrl = nativeBinding.getImageSizeFromUrl
+module.exports.getInstanceActor = nativeBinding.getInstanceActor
 module.exports.getNoteSummary = nativeBinding.getNoteSummary
+module.exports.getRelayActorId = nativeBinding.getRelayActorId
 module.exports.getTimestamp = nativeBinding.getTimestamp
 module.exports.greet = nativeBinding.greet
 module.exports.hashPassword = nativeBinding.hashPassword
-module.exports.HOUR = nativeBinding.HOUR
 module.exports.Inbound = nativeBinding.Inbound
 module.exports.initializeRustLogger = nativeBinding.initializeRustLogger
+module.exports.InternalEvent = nativeBinding.InternalEvent
 module.exports.isAllowedServer = nativeBinding.isAllowedServer
 module.exports.isBlockedServer = nativeBinding.isBlockedServer
 module.exports.isOldPasswordAlgorithm = nativeBinding.isOldPasswordAlgorithm
@@ -406,10 +409,10 @@ module.exports.latestVersion = nativeBinding.latestVersion
 module.exports.loadConfig = nativeBinding.loadConfig
 module.exports.memoryUsage = nativeBinding.memoryUsage
 module.exports.metaToPugArgs = nativeBinding.metaToPugArgs
-module.exports.MINUTE = nativeBinding.MINUTE
 module.exports.MutedNoteReason = nativeBinding.MutedNoteReason
 module.exports.nodeinfo_2_0 = nativeBinding.nodeinfo_2_0
 module.exports.nodeinfo_2_1 = nativeBinding.nodeinfo_2_1
+module.exports.NoteEvent = nativeBinding.NoteEvent
 module.exports.NoteVisibility = nativeBinding.NoteVisibility
 module.exports.NotificationType = nativeBinding.NotificationType
 module.exports.nyaify = nativeBinding.nyaify
@@ -424,14 +427,31 @@ module.exports.publishToChatStream = nativeBinding.publishToChatStream
 module.exports.publishToDriveFileStream = nativeBinding.publishToDriveFileStream
 module.exports.publishToDriveFolderStream = nativeBinding.publishToDriveFolderStream
 module.exports.publishToGroupChatStream = nativeBinding.publishToGroupChatStream
+module.exports.publishToInternalStream = nativeBinding.publishToInternalStream
+module.exports.publishToMainStream = nativeBinding.publishToMainStream
 module.exports.publishToModerationStream = nativeBinding.publishToModerationStream
 module.exports.publishToNotesStream = nativeBinding.publishToNotesStream
+module.exports.publishToNoteStream = nativeBinding.publishToNoteStream
+module.exports.publishToNoteUpdatesStream = nativeBinding.publishToNoteUpdatesStream
+module.exports.publishToUserStream = nativeBinding.publishToUserStream
 module.exports.PushNotificationKind = nativeBinding.PushNotificationKind
 module.exports.PushSubscriptionType = nativeBinding.PushSubscriptionType
 module.exports.RelayStatus = nativeBinding.RelayStatus
 module.exports.removeOldAttestationChallenges = nativeBinding.removeOldAttestationChallenges
+module.exports.renderAccept = nativeBinding.renderAccept
+module.exports.renderAdd = nativeBinding.renderAdd
+module.exports.renderEmoji = nativeBinding.renderEmoji
+module.exports.renderFlag = nativeBinding.renderFlag
+module.exports.renderFollow = nativeBinding.renderFollow
+module.exports.renderFollowRelay = nativeBinding.renderFollowRelay
+module.exports.renderHashtag = nativeBinding.renderHashtag
+module.exports.renderLike = nativeBinding.renderLike
+module.exports.renderMention = nativeBinding.renderMention
+module.exports.renderRead = nativeBinding.renderRead
+module.exports.renderReject = nativeBinding.renderReject
+module.exports.renderRemove = nativeBinding.renderRemove
+module.exports.renderTombstone = nativeBinding.renderTombstone
 module.exports.safeForSql = nativeBinding.safeForSql
-module.exports.SECOND = nativeBinding.SECOND
 module.exports.sendPushNotification = nativeBinding.sendPushNotification
 module.exports.shouldNyaify = nativeBinding.shouldNyaify
 module.exports.showServerInfo = nativeBinding.showServerInfo
@@ -441,14 +461,13 @@ module.exports.storageUsage = nativeBinding.storageUsage
 module.exports.stringToAcct = nativeBinding.stringToAcct
 module.exports.toDbReaction = nativeBinding.toDbReaction
 module.exports.toPuny = nativeBinding.toPuny
+module.exports.translate = nativeBinding.translate
 module.exports.unwatchNote = nativeBinding.unwatchNote
 module.exports.updateAntennaCache = nativeBinding.updateAntennaCache
 module.exports.updateAntennasOnNewNote = nativeBinding.updateAntennasOnNewNote
 module.exports.updateMetaCache = nativeBinding.updateMetaCache
-module.exports.updateNodeinfoCache = nativeBinding.updateNodeinfoCache
-module.exports.USER_ACTIVE_THRESHOLD = nativeBinding.USER_ACTIVE_THRESHOLD
-module.exports.USER_ONLINE_THRESHOLD = nativeBinding.USER_ONLINE_THRESHOLD
 module.exports.UserEmojiModPerm = nativeBinding.UserEmojiModPerm
+module.exports.UserEvent = nativeBinding.UserEvent
 module.exports.UserProfileFfvisibility = nativeBinding.UserProfileFfvisibility
 module.exports.UserProfileMutingNotificationTypes = nativeBinding.UserProfileMutingNotificationTypes
 module.exports.verifyPassword = nativeBinding.verifyPassword

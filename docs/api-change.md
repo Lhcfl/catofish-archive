@@ -2,9 +2,17 @@
 
 Breaking changes are indicated by the :warning: icon.
 
-## Unreleased
+## v20240728
 
-- Added `readCatLanguage` field to the response of `i` and request of `i/update` (optional).
+- Added `name`, `category`, `aliases`, `license` optional parameters to `admin/emoji/add` endpoint.
+- Added `name` optional parameter to `drive/files/upload-from-url` endpoint.
+
+## v20240725
+
+- Added `i/export-followers` endpoint.
+
+## v20240714
+
 - The old Mastodon API has been replaced with a new implementation based on Iceshrimp’s.
   - :warning: The new API uses a new format to manage Mastodon sessions in the database, whereas old implementation uses Misskey sessions. All previous client app and token registrations will not work with the new API. All clients need to be re-registered and all users need to re-authenticate.
   - :warning: All IDs (of statuses/notes, notifications, users, etc.) will be using the alphanumerical format, aligning with the Firefish/Misskey API. The old numerical IDs will not work when queried against the new API.
@@ -133,6 +141,10 @@ Breaking changes are indicated by the :warning: icon.
 |   `POST` | `v1/markers`                       |                                            |
 
 </details>
+
+## v20240710
+
+- Added `readCatLanguage` field to the response of `i` and request of `i/update` (optional).
 
 ## v20240607
 

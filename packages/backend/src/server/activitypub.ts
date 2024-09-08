@@ -7,9 +7,15 @@ import { renderActivity } from "@/remote/activitypub/renderer/index.js";
 import renderNote from "@/remote/activitypub/renderer/note.js";
 import renderKey from "@/remote/activitypub/renderer/key.js";
 import { renderPerson } from "@/remote/activitypub/renderer/person.js";
-import renderEmoji from "@/remote/activitypub/renderer/emoji.js";
 import { inbox as processInbox } from "@/queue/index.js";
-import { fetchMeta, isSelfHost } from "backend-rs";
+import {
+	fetchMeta,
+	getInstanceActor,
+	isSelfHost,
+	renderEmoji,
+	renderFollow,
+	renderLike,
+} from "backend-rs";
 import {
 	Notes,
 	Users,
@@ -18,14 +24,11 @@ import {
 	FollowRequests,
 } from "@/models/index.js";
 import type { ILocalUser, User } from "@/models/entities/user.js";
-import { renderLike } from "@/remote/activitypub/renderer/like.js";
 import { getUserKeypair } from "@/misc/keypair-store.js";
 import {
 	checkFetch,
 	getSignatureUser,
 } from "@/remote/activitypub/check-fetch.js";
-import { getInstanceActor } from "@/services/instance-actor.js";
-import renderFollow from "@/remote/activitypub/renderer/follow.js";
 import Featured from "./activitypub/featured.js";
 import Following from "./activitypub/following.js";
 import Followers from "./activitypub/followers.js";
@@ -243,8 +246,8 @@ router.get("/notes/:note", async (ctx, next) => {
 
 	ctx.body = renderActivity(await renderNote(note, false));
 
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");
@@ -273,8 +276,8 @@ router.get("/notes/:note/activity", async (ctx) => {
 	}
 
 	ctx.body = renderActivity(await packActivity(note));
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");
@@ -296,7 +299,7 @@ router.get("/users/:user/collections/featured", Featured);
 
 // publickey
 router.get("/users/:user/publickey", async (ctx) => {
-	const instanceActor = await getInstanceActor();
+	const instanceActor = (await getInstanceActor()) as ILocalUser;
 	if (ctx.params.user === instanceActor.id) {
 		ctx.body = renderActivity(
 			renderKey(instanceActor, await getUserKeypair(instanceActor.id)),
@@ -328,8 +331,8 @@ router.get("/users/:user/publickey", async (ctx) => {
 
 	if (Users.isLocalUser(user)) {
 		ctx.body = renderActivity(renderKey(user, keypair));
-		const meta = await fetchMeta();
-		if (meta.secureMode || meta.privateMode) {
+		const instanceMeta = await fetchMeta();
+		if (instanceMeta.secureMode || instanceMeta.privateMode) {
 			ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 		} else {
 			ctx.set("Cache-Control", "public, max-age=180");
@@ -348,8 +351,8 @@ async function userInfo(ctx: Router.RouterContext, user: User | null) {
 	}
 
 	ctx.body = renderActivity(await renderPerson(user as ILocalUser));
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");
@@ -360,7 +363,7 @@ async function userInfo(ctx: Router.RouterContext, user: User | null) {
 router.get("/users/:user", async (ctx, next) => {
 	if (!isActivityPubReq(ctx)) return await next();
 
-	const instanceActor = await getInstanceActor();
+	const instanceActor = (await getInstanceActor()) as ILocalUser;
 	if (ctx.params.user === instanceActor.id) {
 		await userInfo(ctx, instanceActor);
 		return;
@@ -387,7 +390,7 @@ router.get("/@:user", async (ctx, next) => {
 	if (!isActivityPubReq(ctx)) return await next();
 
 	if (ctx.params.user === "instance.actor") {
-		const instanceActor = await getInstanceActor();
+		const instanceActor = (await getInstanceActor()) as ILocalUser;
 		await userInfo(ctx, instanceActor);
 		return;
 	}
@@ -407,8 +410,8 @@ router.get("/@:user", async (ctx, next) => {
 	await userInfo(ctx, user);
 });
 
-router.get("/actor", async (ctx, next) => {
-	const instanceActor = await getInstanceActor();
+router.get("/actor", async (ctx, _next) => {
+	const instanceActor = (await getInstanceActor()) as ILocalUser;
 	await userInfo(ctx, instanceActor);
 });
 //#endregion
@@ -432,8 +435,8 @@ router.get("/emojis/:emoji", async (ctx) => {
 	}
 
 	ctx.body = renderActivity(renderEmoji(emoji));
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");
@@ -463,9 +466,9 @@ router.get("/likes/:like", async (ctx) => {
 		return;
 	}
 
-	ctx.body = renderActivity(await renderLike(reaction, note));
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	ctx.body = renderActivity(await renderLike(reaction));
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");
@@ -502,8 +505,8 @@ router.get(
 		}
 
 		ctx.body = renderActivity(renderFollow(follower, followee));
-		const meta = await fetchMeta();
-		if (meta.secureMode || meta.privateMode) {
+		const instanceMeta = await fetchMeta();
+		if (instanceMeta.secureMode || instanceMeta.privateMode) {
 			ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 		} else {
 			ctx.set("Cache-Control", "public, max-age=180");
@@ -545,8 +548,8 @@ router.get("/follows/:followRequestId", async (ctx: Router.RouterContext) => {
 		return;
 	}
 
-	const meta = await fetchMeta();
-	if (meta.secureMode || meta.privateMode) {
+	const instanceMeta = await fetchMeta();
+	if (instanceMeta.secureMode || instanceMeta.privateMode) {
 		ctx.set("Cache-Control", "private, max-age=0, must-revalidate");
 	} else {
 		ctx.set("Cache-Control", "public, max-age=180");

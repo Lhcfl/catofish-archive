@@ -8,7 +8,7 @@
 /// `host` - punycoded instance host
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// # use backend_rs::misc::check_server_block::is_blocked_server;
 /// # async fn f() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(true, is_blocked_server("blocked.com").await?);
@@ -35,7 +35,7 @@ pub async fn is_blocked_server(host: &str) -> Result<bool, sea_orm::DbErr> {
 /// `host` - punycoded instance host
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// # use backend_rs::misc::check_server_block::is_silenced_server;
 /// # async fn f() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(true, is_silenced_server("silenced.com").await?);
@@ -63,7 +63,7 @@ pub async fn is_silenced_server(host: &str) -> Result<bool, sea_orm::DbErr> {
 /// `host` - punycoded instance host
 ///
 /// # Example
-/// ```no_run
+/// ```ignore
 /// # use backend_rs::misc::check_server_block::is_allowed_server;
 /// # async fn f() -> Result<(), Box<dyn std::error::Error>> {
 /// assert_eq!(true, is_allowed_server("allowed.com").await?);
@@ -81,7 +81,7 @@ pub async fn is_allowed_server(host: &str) -> Result<bool, sea_orm::DbErr> {
         return Ok(true);
     }
     if let Some(allowed_hosts) = meta.allowed_hosts {
-        return Ok(allowed_hosts.contains(&host.to_string()));
+        return Ok(allowed_hosts.contains(&host.to_owned()));
     }
     Ok(false)
 }

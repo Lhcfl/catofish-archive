@@ -1,19 +1,21 @@
-use crate::{database::cache, util::http_client};
-use image::{io::Reader, ImageError, ImageFormat};
+use crate::{cache, util::http_client};
+use chrono::Duration;
+use futures_util::AsyncReadExt;
+use image::{ImageError, ImageFormat, ImageReader};
 use isahc::AsyncReadResponseExt;
 use nom_exif::{parse_jpeg_exif, EntryValue, ExifTag};
 use std::io::Cursor;
 use tokio::sync::Mutex;
 
-#[derive(thiserror::Error, Debug)]
+#[error_doc::errors]
 pub enum Error {
     #[error("Redis cache operation has failed")]
-    Cache(#[from] cache::Error),
+    Cache(#[from] cache::redis::Error),
     #[error("failed to acquire an HTTP client")]
     HttpClient(#[from] http_client::Error),
     #[error("HTTP request failed")]
     Isahc(#[from] isahc::Error),
-    #[doc = "bad HTTP status"]
+    #[doc = "Bad HTTP status"]
     #[error("bad HTTP status ({0})")]
     BadStatus(String),
     #[error("failed to decode an image")]
@@ -22,10 +24,10 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("failed to extract the exif data")]
     Exif(#[from] nom_exif::Error),
-    #[doc = "too many fetch attempts"]
+    #[doc = "Too many fetch attempts"]
     #[error("too many fetch attempts for {0}")]
     TooManyAttempts(String),
-    #[doc = "unsupported image type"]
+    #[doc = "Unsupported image type"]
     #[error("unsupported image type ({0})")]
     UnsupportedImage(String),
 }
@@ -62,22 +64,21 @@ pub async fn get_image_size_from_url(url: &str) -> Result<ImageSize, Error> {
             .is_some();
 
         if !attempted {
-            cache::set_one(cache::Category::FetchUrl, url, &true, 10 * 60).await?;
+            cache::set_one(cache::Category::FetchUrl, url, &true, Duration::minutes(10)).await?;
         }
     }
 
     if attempted {
         tracing::warn!("attempt limit exceeded: {}", url);
-        return Err(Error::TooManyAttempts(url.to_string()));
+        return Err(Error::TooManyAttempts(url.to_owned()));
     }
 
     tracing::info!("retrieving image from {}", url);
 
-    let mut response = http_client::client()?.get_async(url).await?;
+    let response = http_client::client()?.get_async(url).await?;
 
     if !response.status().is_success() {
         tracing::info!("status: {}", response.status());
-        tracing::debug!("response body: {:#?}", response.body());
         return Err(Error::BadStatus(format!(
             "{} returned {}",
             url,
@@ -85,9 +86,13 @@ pub async fn get_image_size_from_url(url: &str) -> Result<ImageSize, Error> {
         )));
     }
 
-    let image_bytes = response.bytes().await?;
+    // Read up to 8 MiB of the response body
+    let image_bytes = response
+        .map(|body| body.take(8 * 1024 * 1024))
+        .bytes()
+        .await?;
 
-    let reader = Reader::new(Cursor::new(&image_bytes)).with_guessed_format()?;
+    let reader = ImageReader::new(Cursor::new(&image_bytes)).with_guessed_format()?;
 
     let format = reader.format();
     if format.is_none() || !BROWSER_SAFE_IMAGE_TYPES.contains(&format.unwrap()) {
@@ -130,7 +135,7 @@ pub async fn get_image_size_from_url(url: &str) -> Result<ImageSize, Error> {
 #[cfg(test)]
 mod unit_test {
     use super::ImageSize;
-    use crate::database::cache;
+    use crate::cache;
     use pretty_assertions::assert_eq;
 
     #[tokio::test]

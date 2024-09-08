@@ -1,5 +1,6 @@
 use crate::{
-    database::{cache, redis_conn, redis_key, RedisConnError},
+    cache,
+    database::{redis_conn, redis_key, RedisConnError},
     federation::acct::Acct,
     misc::note::elaborate,
     model::entity::note,
@@ -13,18 +14,18 @@ use crate::{
 use redis::{streams::StreamMaxlen, AsyncCommands, RedisError};
 use sea_orm::prelude::*;
 
-#[derive(thiserror::Error, Debug)]
+#[error_doc::errors]
 pub enum Error {
-    #[doc = "database error"]
+    #[doc = "Database error"]
     #[error(transparent)]
     Db(#[from] DbErr),
     #[error("Redis cache operation has failed")]
-    Cache(#[from] cache::Error),
+    Cache(#[from] cache::redis::Error),
     #[error("failed to execute a Redis command")]
     Redis(#[from] RedisError),
     #[error("bad Redis connection")]
     RedisConn(#[from] RedisConnError),
-    #[doc = "provided string is not a valid Firefish ID"]
+    #[doc = "Provided string is not a valid Firefish ID"]
     #[error(transparent)]
     InvalidId(#[from] InvalidIdError),
     #[error("Redis stream operation has failed")]
@@ -46,7 +47,7 @@ pub async fn update_antennas_on_new_note(
     let note_all_texts = elaborate!(note, false).await?;
 
     // TODO: do this in parallel
-    for antenna in antenna::cache::get().await?.iter() {
+    for antenna in antenna::get_antennas().await?.iter() {
         if note_muted_users.contains(&antenna.user_id) {
             continue;
         }
@@ -59,8 +60,11 @@ pub async fn update_antennas_on_new_note(
 }
 
 async fn add_note_to_antenna(antenna_id: &str, note: &Note) -> Result<(), Error> {
+    // for streaming API
+    stream::antenna::publish(antenna_id.to_owned(), note).await?;
+
     // for timeline API
-    redis_conn()
+    Ok(redis_conn()
         .await?
         .xadd_maxlen(
             redis_key(format!("antennaTimeline:{}", antenna_id)),
@@ -68,10 +72,5 @@ async fn add_note_to_antenna(antenna_id: &str, note: &Note) -> Result<(), Error>
             format!("{}-*", get_timestamp(&note.id)?),
             &[("note", &note.id)],
         )
-        .await?;
-
-    // for streaming API
-    stream::antenna::publish(antenna_id.to_string(), note).await?;
-
-    Ok(())
+        .await?)
 }

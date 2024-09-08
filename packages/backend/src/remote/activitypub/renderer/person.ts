@@ -4,12 +4,11 @@ import { config } from "@/config.js";
 import type { ILocalUser } from "@/models/entities/user.js";
 import { DriveFiles, UserProfiles } from "@/models/index.js";
 import { getUserKeypair } from "@/misc/keypair-store.js";
-import { toHtml } from "../../../mfm/to-html.js";
+import { toHtml } from "@/mfm/to-html.js";
 import renderImage from "./image.js";
 import renderKey from "./key.js";
 import { getEmojis } from "./note.js";
-import renderEmoji from "./emoji.js";
-import renderHashtag from "./hashtag.js";
+import { renderEmoji, renderHashtag } from "backend-rs";
 import type { IIdentifier } from "../models/identifier.js";
 
 export async function renderPerson(user: ILocalUser) {

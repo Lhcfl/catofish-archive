@@ -23,7 +23,7 @@
 					:key="instance.id"
 					class="instance"
 				>
-					<img :src="getInstanceIcon(instance)" alt="" />
+					<img :src="getInstanceIcon(instance)" @error="getInstanceIconErrorEvent($event)" alt="" />
 					<div class="body">
 						<a
 							class="a"
@@ -111,6 +111,10 @@ function getInstanceIcon(instance): string {
 	);
 }
 
+function getInstanceIconErrorEvent($event) {
+	$event.target.src = "/client-assets/dummy.png";
+}
+
 defineExpose<WidgetComponentExpose>({
 	name,
 	configure,
@@ -123,7 +127,7 @@ defineExpose<WidgetComponentExpose>({
 	$bodyTitleHieght: 18px;
 	$bodyInfoHieght: 16px;
 
-	height: (62px + 1px) + (62px + 1px) + (62px + 1px) + (62px + 1px) + 62px;
+	block-size: (62px + 1px) + (62px + 1px) + (62px + 1px) + (62px + 1px) + 62px;
 	overflow: hidden;
 
 	> .instances {
@@ -134,16 +138,17 @@ defineExpose<WidgetComponentExpose>({
 		> .instance {
 			display: flex;
 			align-items: center;
-			padding: 14px 16px;
-			border-bottom: solid 0.5px var(--divider);
+			padding-block: 14px;
+			padding-inline: 16px;
+			border-block-end: solid 0.5px var(--divider);
 
 			> img {
 				display: block;
-				width: ($bodyTitleHieght + $bodyInfoHieght);
-				height: ($bodyTitleHieght + $bodyInfoHieght);
+				inline-size: ($bodyTitleHieght + $bodyInfoHieght);
+				block-size: ($bodyTitleHieght + $bodyInfoHieght);
 				object-fit: cover;
 				border-radius: 4px;
-				margin-right: 8px;
+				margin-inline-end: 8px;
 			}
 
 			> .body {
@@ -151,11 +156,11 @@ defineExpose<WidgetComponentExpose>({
 				overflow: hidden;
 				font-size: 0.9em;
 				color: var(--fg);
-				padding-right: 8px;
+				padding-inline-end: 8px;
 
 				> .a {
 					display: block;
-					width: 100%;
+					inline-size: 100%;
 					white-space: nowrap;
 					overflow: hidden;
 					text-overflow: ellipsis;
@@ -174,7 +179,7 @@ defineExpose<WidgetComponentExpose>({
 			}
 
 			> .chart {
-				height: 30px;
+				block-size: 30px;
 			}
 		}
 	}

@@ -5,8 +5,13 @@ pub mod chat_index;
 pub mod custom_emoji;
 pub mod drive;
 pub mod group_chat;
+pub mod internal;
+pub mod main;
 pub mod moderation;
+pub mod note;
+pub mod note_edit;
 pub mod notes;
+pub mod user;
 
 use crate::{
     config::CONFIG,
@@ -30,9 +35,7 @@ pub enum Stream {
         note_id: String,
     },
     Notes,
-    UserList {
-        list_id: String,
-    },
+    NoteEdit,
     Main {
         user_id: String,
     },
@@ -62,7 +65,7 @@ pub enum ChatEvent {
     Typing,
 }
 
-#[derive(thiserror::Error, Debug)]
+#[error_doc::errors]
 pub enum Error {
     #[error("failed to execute a Redis command")]
     Redis(#[from] RedisError),
@@ -80,14 +83,14 @@ pub async fn publish_to_stream(
     value: Option<String>,
 ) -> Result<(), Error> {
     let channel = match stream {
-        Stream::Internal => "internal".to_string(),
-        Stream::CustomEmoji => "broadcast".to_string(),
+        Stream::Internal => "internal".to_owned(),
+        Stream::CustomEmoji => "broadcast".to_owned(),
         Stream::Moderation { moderator_id } => format!("adminStream:{moderator_id}"),
         Stream::User { user_id } => format!("user:{user_id}"),
         Stream::Channel { channel_id } => format!("channelStream:{channel_id}"),
         Stream::Note { note_id } => format!("noteStream:{note_id}"),
-        Stream::Notes => "notesStream".to_string(),
-        Stream::UserList { list_id } => format!("userListStream:{list_id}"),
+        Stream::NoteEdit => "noteUpdatesStream".to_owned(),
+        Stream::Notes => "notesStream".to_owned(),
         Stream::Main { user_id } => format!("mainStream:{user_id}"),
         Stream::Drive { user_id } => format!("driveStream:{user_id}"),
         Stream::Antenna { antenna_id } => format!("antennaStream:{antenna_id}"),
@@ -103,19 +106,17 @@ pub async fn publish_to_stream(
         format!(
             "{{\"type\":\"{}\",\"body\":{}}}",
             kind,
-            value.unwrap_or_else(|| "null".to_string()),
+            value.unwrap_or_else(|| "null".to_owned()),
         )
     } else {
         value.ok_or(Error::InvalidContent)?
     };
 
-    redis_conn()
+    Ok(redis_conn()
         .await?
         .publish(
             &CONFIG.host,
             format!("{{\"channel\":\"{}\",\"message\":{}}}", channel, message),
         )
-        .await?;
-
-    Ok(())
+        .await?)
 }

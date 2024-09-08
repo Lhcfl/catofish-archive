@@ -1,4 +1,4 @@
-image: docker.io/rust:slim-bookworm
+image: docker.io/rust:bookworm
 
 services:
   - name: docker.io/groonga/pgroonga:latest-alpine-12-slim
@@ -47,8 +47,7 @@ variables:
 
 default:
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get -y --no-install-recommends install curl
+    - apt-get update && apt-get -y --no-install-recommends install curl
     - curl -fsSL 'https://deb.nodesource.com/setup_18.x' | bash -
     - apt-get install -y --no-install-recommends build-essential clang mold python3 perl nodejs postgresql-client
     - corepack enable
@@ -111,8 +110,7 @@ test:build:backend_ts:
           - packages/firefish-js/**/*
       when: always
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get -y --no-install-recommends install curl
+    - apt-get update && apt-get -y --no-install-recommends install curl
     - curl -fsSL 'https://deb.nodesource.com/setup_18.x' | bash -
     - apt-get install -y --no-install-recommends build-essential clang mold python3 perl nodejs postgresql-client
     - corepack enable
@@ -159,8 +157,7 @@ test:build:client:
       when: always
   services: []
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get -y --no-install-recommends install curl
+    - apt-get update && apt-get -y --no-install-recommends install curl
     - curl -fsSL 'https://deb.nodesource.com/setup_18.x' | bash -
     - apt-get install -y --no-install-recommends build-essential python3 perl nodejs
     - corepack enable
@@ -175,39 +172,16 @@ build:container:
   image: docker.io/debian:trixie-slim
   services: []
   rules:
-    - if: $BUILD == 'true'
-      when: always
-    - if: $BUILD == 'false'
-      when: never
-    - if: $CI_COMMIT_BRANCH == 'develop'
-      changes:
-        paths:
-          - packages/**/*
-          - locales/**/*
-          - scripts/copy-assets.mjs
-          - package.json
-          - Cargo.toml
-          - Cargo.lock
-          - Dockerfile
-          - .dockerignore
-      when: always
-  needs:
-    - job: test:build
-      optional: true
-    - job: test:build:backend_ts_only
-      optional: true
-    - job: test:build:client_only
-      optional: true
+    - if: $BUILD && $CI_PIPELINE_SOURCE == 'schedule'
   variables:
     STORAGE_DRIVER: overlay
   before_script:
-    - apt-get update && apt-get -y upgrade
+    - apt-get update && apt-get install -y --no-install-recommends ca-certificates fuse-overlayfs buildah
     - |-
       sed -i -r 's/"version": "([-0-9]+)",/"version": "\1-dev",/' package.json
-    - apt-get install -y --no-install-recommends ca-certificates fuse-overlayfs buildah
     - echo "${CI_REGISTRY_PASSWORD}" | buildah login --username "${CI_REGISTRY_USER}" --password-stdin "${CI_REGISTRY}"
-    - export IMAGE_TAG="${CI_REGISTRY}/${CI_PROJECT_PATH}/develop:not-for-production"
-    - export IMAGE_CACHE="${CI_REGISTRY}/${CI_PROJECT_PATH}/develop/cache"
+    - export IMAGE_TAG_1="${CI_REGISTRY}/${CI_PROJECT_PATH}/develop:not-for-production"
+    - export IMAGE_TAG_2="${CI_REGISTRY}/${CI_PROJECT_PATH}/develop:not-for-production-$(date +%Y%m%d)"
     - buildah version
   script:
     - |-
@@ -218,17 +192,16 @@ build:container:
         --security-opt apparmor=unconfined \
         --cap-add all \
         --platform linux/amd64 \
-        --layers \
-        --cache-to "${IMAGE_CACHE}" \
-        --cache-from "${IMAGE_CACHE}" \
-        --tag "${IMAGE_TAG}" \
+        --tag "${IMAGE_TAG_1}" \
+        --tag "${IMAGE_TAG_2}" \
         .
-    - buildah inspect "${IMAGE_TAG}"
-    - buildah push "${IMAGE_TAG}"
+    - buildah inspect "${IMAGE_TAG_1}"
+    - buildah push "${IMAGE_TAG_1}"
+    - buildah push "${IMAGE_TAG_2}"
 
 cargo:check:msrv:
   stage: test
-  image: docker.io/rust:1.74-slim-bookworm
+  image: docker.io/rust:1.74-bookworm
   rules:
     - if: $TEST == 'true'
       when: always
@@ -244,8 +217,7 @@ cargo:check:msrv:
       when: always
   services: []
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get install -y --no-install-recommends build-essential clang mold python3 perl nodejs postgresql-client
+    - apt-get update && apt-get install -y --no-install-recommends build-essential clang mold python3 perl nodejs postgresql-client
     - cp ci/cargo/config.toml /usr/local/cargo/config.toml
     - export CARGO_TARGET_DIR='ci/target-msrv'
   script:
@@ -287,8 +259,7 @@ cargo:clippy:
       when: always
   services: []
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get install -y --no-install-recommends build-essential clang mold perl
+    - apt-get update && apt-get install -y --no-install-recommends build-essential clang mold perl
     - cp ci/cargo/config.toml /usr/local/cargo/config.toml
     - rustup component add clippy
   script:
@@ -312,8 +283,7 @@ cargo:doc:
       when: always
   services: []
   before_script:
-    - apt-get update
-    - apt-get install -y --no-install-recommends build-essential clang mold nodejs npm
+    - apt-get update && apt-get install -y --no-install-recommends build-essential clang mold nodejs npm
     - cp ci/cargo/config.toml /usr/local/cargo/config.toml
   script:
     - cargo doc --document-private-items
@@ -354,8 +324,7 @@ clean:
     - if: $CLEAN && $CI_PIPELINE_SOURCE == 'schedule'
   services: []
   before_script:
-    - apt-get update && apt-get -y upgrade
-    - apt-get -y --no-install-recommends install curl
+    - apt-get update && apt-get -y --no-install-recommends install curl
     - curl -fsSL 'https://deb.nodesource.com/setup_18.x' | bash -
     - apt-get install -y --no-install-recommends nodejs
     - corepack enable
@@ -367,7 +336,19 @@ clean:
 add-issue-labels:
   stage: manage
   rules:
-    - if: $MANAGE && $CI_PIPELINE_SOURCE == 'schedule'
+    - if: $ADD_LABEL && $CI_PIPELINE_SOURCE == 'schedule'
+  image: registry.firefish.dev/firefish/gitlab-issue-labels
+  variables:
+    GITLAB_HOST: "firefish.dev"
+  services: []
+  before_script: []
+  script:
+    - gitlab-issue-labels
+
+close-stalled-issues:
+  stage: manage
+  rules:
+    - if: $CLOSE_STALLED && $CI_PIPELINE_SOURCE == 'schedule'
   image: registry.firefish.dev/firefish/gitlab-issue-labels
   variables:
     GITLAB_HOST: "firefish.dev"
